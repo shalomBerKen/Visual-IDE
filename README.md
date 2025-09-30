@@ -43,7 +43,7 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/Visual-IDE.git
+   git clone https://github.com/shalomBerKen/Visual-IDE.git
    cd Visual-IDE
    ```
 
