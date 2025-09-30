@@ -1,12 +1,6 @@
 import { useState, useCallback } from 'react';
-import type {
-  Block,
-  FunctionBlock,
-  VariableBlock,
-  IfBlock,
-  ForBlock,
-  ReturnBlock
-} from '../types/blocks';
+import type { Block } from '../types/blocks';
+import { BlockFactory } from '../services/BlockFactory';
 
 /**
  * Hook for managing a list of blocks
@@ -16,56 +10,9 @@ export const useBlockManager = () => {
   const [blocks, setBlocks] = useState<Block[]>([]);
 
   // Create a new block with default values based on type
+  // Delegates to BlockFactory for consistency
   const createBlock = useCallback((type: string, customId?: string): Block | null => {
-    const id = customId || `${type}-${Date.now()}`;
-
-    switch (type) {
-      case 'function':
-        return {
-          id,
-          type: 'function',
-          name: 'new_function',
-          parameters: [],
-          children: [],
-        } as FunctionBlock;
-
-      case 'variable':
-        return {
-          id,
-          type: 'variable',
-          name: 'new_var',
-          value: '0',
-        } as VariableBlock;
-
-      case 'if':
-        return {
-          id,
-          type: 'if',
-          condition: 'True',
-          ifBody: [],
-          elseType: 'none',
-          elseBody: [],
-        } as IfBlock;
-
-      case 'for':
-        return {
-          id,
-          type: 'for',
-          iterator: 'i',
-          iterable: 'range(10)',
-          children: [],
-        } as ForBlock;
-
-      case 'return':
-        return {
-          id,
-          type: 'return',
-          value: 'None',
-        } as ReturnBlock;
-
-      default:
-        return null;
-    }
+    return BlockFactory.createBlock(type, customId);
   }, []);
 
   // Add a new top-level block
