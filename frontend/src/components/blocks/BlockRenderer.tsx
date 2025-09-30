@@ -17,10 +17,11 @@ interface Props {
   block: Block;
   onUpdate?: (block: Block) => void;
   onAddChild?: (parentId: string, blockType: string) => void;
+  onDelete?: (blockId: string) => void;
   availableVariables?: string[];
 }
 
-export const BlockRenderer: React.FC<Props> = ({ block, onUpdate, onAddChild, availableVariables = [] }) => {
+export const BlockRenderer: React.FC<Props> = ({ block, onUpdate, onAddChild, onDelete, availableVariables = [] }) => {
   switch (block.type) {
     case 'function':
       return (
@@ -28,6 +29,7 @@ export const BlockRenderer: React.FC<Props> = ({ block, onUpdate, onAddChild, av
           block={block as FunctionBlockType}
           onUpdate={onUpdate}
           onAddChild={onAddChild}
+          onDelete={onDelete}
         />
       );
     case 'variable':
@@ -35,6 +37,7 @@ export const BlockRenderer: React.FC<Props> = ({ block, onUpdate, onAddChild, av
         <VariableBlock
           block={block as VariableBlockType}
           onUpdate={onUpdate}
+          onDelete={onDelete}
           availableVariables={availableVariables}
         />
       );
@@ -44,6 +47,7 @@ export const BlockRenderer: React.FC<Props> = ({ block, onUpdate, onAddChild, av
           block={block as IfBlockType}
           onUpdate={onUpdate}
           onAddChild={onAddChild}
+          onDelete={onDelete}
           availableVariables={availableVariables}
         />
       );
@@ -53,6 +57,7 @@ export const BlockRenderer: React.FC<Props> = ({ block, onUpdate, onAddChild, av
           block={block as ForBlockType}
           onUpdate={onUpdate}
           onAddChild={onAddChild}
+          onDelete={onDelete}
           availableVariables={availableVariables}
         />
       );
@@ -61,6 +66,7 @@ export const BlockRenderer: React.FC<Props> = ({ block, onUpdate, onAddChild, av
         <ReturnBlock
           block={block as ReturnBlockType}
           onUpdate={onUpdate}
+          onDelete={onDelete}
           availableVariables={availableVariables}
         />
       );

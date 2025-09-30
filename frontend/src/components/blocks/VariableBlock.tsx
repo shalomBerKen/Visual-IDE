@@ -5,12 +5,13 @@ import { ValueInput } from '../common/ValueInput';
 interface Props {
   block: VariableBlockType;
   onUpdate?: (block: VariableBlockType) => void;
+  onDelete?: (blockId: string) => void;
   availableVariables?: string[];
 }
 
-export const VariableBlock: React.FC<Props> = ({ block, onUpdate, availableVariables = [] }) => {
+export const VariableBlock: React.FC<Props> = ({ block, onUpdate, onDelete, availableVariables = [] }) => {
   return (
-    <div className="border-2 border-green-500 rounded-lg p-4 bg-white shadow-lg mb-4">
+    <div className="border-2 border-green-500 rounded-lg p-4 bg-white shadow-lg mb-4 min-w-[350px] w-fit">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -18,7 +19,18 @@ export const VariableBlock: React.FC<Props> = ({ block, onUpdate, availableVaria
             Variable
           </span>
         </div>
-        <div className="text-sm text-gray-500">=</div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">=</span>
+          {onDelete && (
+            <button
+              onClick={() => onDelete(block.id)}
+              className="text-red-500 hover:text-red-700 text-lg"
+              title="Delete block"
+            >
+              🗑️
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}

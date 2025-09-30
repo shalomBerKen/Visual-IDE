@@ -7,15 +7,16 @@ interface Props {
   block: ForBlockType;
   onUpdate?: (block: ForBlockType) => void;
   onAddChild?: (parentId: string, blockType: string) => void;
+  onDelete?: (blockId: string) => void;
   availableVariables?: string[];
 }
 
-export const ForBlock: React.FC<Props> = ({ block, onUpdate, onAddChild, availableVariables = [] }) => {
+export const ForBlock: React.FC<Props> = ({ block, onUpdate, onAddChild, onDelete, availableVariables = [] }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAddMenu, setShowAddMenu] = useState(false);
 
   return (
-    <div className="border-2 border-orange-500 rounded-lg p-4 bg-white shadow-lg mb-4">
+    <div className="border-2 border-orange-500 rounded-lg p-4 bg-white shadow-lg mb-4 min-w-[400px] w-fit">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -29,7 +30,18 @@ export const ForBlock: React.FC<Props> = ({ block, onUpdate, onAddChild, availab
             For Loop
           </span>
         </div>
-        <div className="text-sm text-gray-500">for</div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">for</span>
+          {onDelete && (
+            <button
+              onClick={() => onDelete(block.id)}
+              className="text-red-500 hover:text-red-700 text-lg"
+              title="Delete block"
+            >
+              🗑️
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -68,7 +80,7 @@ export const ForBlock: React.FC<Props> = ({ block, onUpdate, onAddChild, availab
             <div className="text-sm font-medium text-gray-700 mb-2">
               Loop Body:
             </div>
-            <div className="ml-4 space-y-2 bg-orange-50 rounded p-3">
+            <div className="ml-4 space-y-2 bg-orange-50 rounded p-3 min-w-fit">
               {block.children && block.children.length > 0 ? (
                 block.children.map((child) => (
                   <BlockRenderer
@@ -80,12 +92,16 @@ export const ForBlock: React.FC<Props> = ({ block, onUpdate, onAddChild, availab
                       );
                       onUpdate?.({ ...block, children: newChildren });
                     }}
+                    onDelete={(childId) => {
+                      const newChildren = block.children.filter(c => c.id !== childId);
+                      onUpdate?.({ ...block, children: newChildren });
+                    }}
                     onAddChild={onAddChild}
                     availableVariables={[...availableVariables, block.iterator]}
                   />
                 ))
               ) : (
-                <div className="text-gray-400 italic text-sm">
+                <div className="text-gray-400 italic text-sm py-3 text-center border-2 border-dashed border-orange-300 rounded bg-white">
                   Empty loop body
                 </div>
               )}

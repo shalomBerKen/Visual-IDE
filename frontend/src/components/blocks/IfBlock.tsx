@@ -76,7 +76,7 @@ export const IfBlock: React.FC<Props> = ({
   );
 
   return (
-    <div className="border-2 border-purple-500 rounded-lg bg-white shadow-lg mb-4 inline-block">
+    <div className="border-2 border-purple-500 rounded-lg bg-white shadow-lg mb-4 w-fit">
       {/* Header with condition */}
       <div className="p-3 bg-purple-50 border-b-2 border-purple-500">
         <div className="flex items-center justify-between mb-2">
@@ -122,6 +122,10 @@ export const IfBlock: React.FC<Props> = ({
                     const newIfBody = block.ifBody.map(c =>
                       c.id === updated.id ? updated : c
                     );
+                    onUpdate?.({ ...block, ifBody: newIfBody });
+                  }}
+                  onDelete={(childId) => {
+                    const newIfBody = block.ifBody.filter(c => c.id !== childId);
                     onUpdate?.({ ...block, ifBody: newIfBody });
                   }}
                   onAddChild={onAddChild}
@@ -202,6 +206,10 @@ export const IfBlock: React.FC<Props> = ({
                     const newElseBody = block.elseBody.map(c =>
                       c.id === updated.id ? updated : c
                     );
+                    onUpdate?.({ ...block, elseBody: newElseBody });
+                  }}
+                  onDelete={(childId) => {
+                    const newElseBody = block.elseBody.filter(c => c.id !== childId);
                     onUpdate?.({ ...block, elseBody: newElseBody });
                   }}
                   onAddChild={onAddChild}

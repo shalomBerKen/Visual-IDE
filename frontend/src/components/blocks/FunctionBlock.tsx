@@ -19,7 +19,7 @@ export const FunctionBlock: React.FC<Props> = ({ block, onUpdate, onAddChild, on
   const availableVariables = useMemo(() => getVariablesInFunction(block), [block]);
 
   return (
-    <div className="border-2 border-blue-500 rounded-lg p-4 bg-white shadow-lg mb-4">
+    <div className="border-2 border-blue-500 rounded-lg p-4 bg-white shadow-lg mb-4 min-w-[400px] w-fit">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -123,7 +123,7 @@ export const FunctionBlock: React.FC<Props> = ({ block, onUpdate, onAddChild, on
             <div className="text-sm font-medium text-gray-700 mb-2">
               Function Body:
             </div>
-            <div className="ml-4 space-y-2">
+            <div className="ml-4 space-y-2 min-w-fit">
               {block.children && block.children.length > 0 ? (
                 block.children.map((child) => (
                   <BlockRenderer
@@ -135,12 +135,16 @@ export const FunctionBlock: React.FC<Props> = ({ block, onUpdate, onAddChild, on
                       );
                       onUpdate?.({ ...block, children: newChildren });
                     }}
+                    onDelete={(childId) => {
+                      const newChildren = block.children.filter(c => c.id !== childId);
+                      onUpdate?.({ ...block, children: newChildren });
+                    }}
                     onAddChild={onAddChild}
                     availableVariables={availableVariables}
                   />
                 ))
               ) : (
-                <div className="text-gray-400 italic text-sm">
+                <div className="text-gray-400 italic text-sm py-3 text-center border-2 border-dashed border-gray-300 rounded">
                   Empty function body
                 </div>
               )}
