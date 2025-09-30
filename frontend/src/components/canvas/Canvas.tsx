@@ -14,164 +14,46 @@ import { ForBlock } from '../blocks/ForBlock';
 import { ReturnBlock } from '../blocks/ReturnBlock';
 import { PythonCompiler } from '../../core/compiler/pythonCompiler';
 import { PythonParser } from '../../core/parser/pythonParser';
+import { useBlockManager } from '../../hooks/useBlockManager';
+import { useChildManager } from '../../hooks/useChildManager';
 
 export const Canvas: React.FC = () => {
-  const [blocks, setBlocks] = useState<Block[]>([]);
   const [showCode, setShowCode] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [importCode, setImportCode] = useState('');
   const compiler = new PythonCompiler();
   const parser = new PythonParser();
 
-  const addFunctionBlock = () => {
-    const newBlock: FunctionBlockType = {
-      id: `func-${Date.now()}`,
-      type: 'function',
-      name: 'new_function',
-      parameters: [],
-      children: [],
-    };
-    setBlocks([...blocks, newBlock]);
-  };
+  // Use custom hooks for block management
+  const {
+    blocks,
+    addBlock,
+    updateBlock,
+    deleteBlock,
+    addBlocks,
+    createBlock,
+    setBlocks
+  } = useBlockManager();
 
-  const addVariableBlock = () => {
-    const newBlock: VariableBlockType = {
-      id: `var-${Date.now()}`,
-      type: 'variable',
-      name: 'my_variable',
-      value: '0',
-    };
-    setBlocks([...blocks, newBlock]);
-  };
+  const { addChild } = useChildManager(createBlock);
 
-  const addIfBlock = () => {
-    const newBlock: IfBlockType = {
-      id: `if-${Date.now()}`,
-      type: 'if',
-      condition: 'True',
-      ifBody: [],
-      elseType: 'none',
-      elseBody: [],
-    };
-    setBlocks([...blocks, newBlock]);
-  };
+  // Wrapper functions for adding specific block types
+  const addFunctionBlock = () => addBlock('function');
+  const addVariableBlock = () => addBlock('variable');
+  const addIfBlock = () => addBlock('if');
+  const addForBlock = () => addBlock('for');
+  const addReturnBlock = () => addBlock('return');
 
-  const addForBlock = () => {
-    const newBlock: ForBlockType = {
-      id: `for-${Date.now()}`,
-      type: 'for',
-      iterator: 'i',
-      iterable: 'range(10)',
-      children: [],
-    };
-    setBlocks([...blocks, newBlock]);
-  };
-
-  const addReturnBlock = () => {
-    const newBlock: ReturnBlockType = {
-      id: `return-${Date.now()}`,
-      type: 'return',
-      value: 'None',
-    };
-    setBlocks([...blocks, newBlock]);
-  };
-
-  const updateBlock = (updatedBlock: Block) => {
-    setBlocks(blocks.map(block =>
-      block.id === updatedBlock.id ? updatedBlock : block
-    ));
-  };
-
-  const deleteBlock = (blockId: string) => {
-    setBlocks(blocks.filter(block => block.id !== blockId));
-  };
-
+  // Wrapper for adding child blocks - uses the hook
   const addChildBlock = (parentId: string, blockType: string) => {
-    const createBlock = (type: string): Block | null => {
-      const id = `${type}-${Date.now()}`;
-      switch (type) {
-        case 'variable':
-          return { id, type: 'variable', name: 'new_var', value: '0' };
-        case 'if':
-          return { id, type: 'if', condition: 'True', ifBody: [], elseType: 'none', elseBody: [] };
-        case 'for':
-          return { id, type: 'for', iterator: 'i', iterable: 'range(10)', children: [] };
-        case 'return':
-          return { id, type: 'return', value: 'None' };
-        default:
-          return null;
-      }
-    };
-
-    const newBlock = createBlock(blockType);
-    if (!newBlock) return;
-
-    const addToParent = (block: Block): Block => {
-      // Handle function blocks
-      if (block.id === parentId && block.type === 'function') {
-        return {
-          ...block,
-          children: [...block.children, newBlock]
-        };
-      }
-
-      // Handle if blocks - ifBody
-      if (block.id === parentId && block.type === 'if') {
-        return {
-          ...block,
-          ifBody: [...block.ifBody, newBlock]
-        };
-      }
-
-      // Handle if blocks - elseBody
-      if (parentId === block.id + '-else' && block.type === 'if') {
-        return {
-          ...block,
-          elseBody: [...block.elseBody, newBlock]
-        };
-      }
-
-      // Handle for blocks
-      if (block.id === parentId && block.type === 'for') {
-        return {
-          ...block,
-          children: [...block.children, newBlock]
-        };
-      }
-
-      // Recursively search in children
-      if (block.type === 'function') {
-        return {
-          ...block,
-          children: block.children.map(addToParent)
-        };
-      }
-
-      if (block.type === 'if') {
-        return {
-          ...block,
-          ifBody: block.ifBody.map(addToParent),
-          elseBody: block.elseBody.map(addToParent)
-        };
-      }
-
-      if (block.type === 'for') {
-        return {
-          ...block,
-          children: block.children.map(addToParent)
-        };
-      }
-
-      return block;
-    };
-
-    setBlocks(blocks.map(addToParent));
+    const updatedBlocks = addChild(blocks, parentId, blockType);
+    setBlocks(updatedBlocks);
   };
 
   const handleImportCode = () => {
     try {
       const parsedBlocks = parser.parse(importCode);
-      setBlocks([...blocks, ...parsedBlocks]);
+      addBlocks(parsedBlocks);
       setImportCode('');
       setShowImport(false);
     } catch (error) {
