@@ -49,21 +49,82 @@ export class PythonCompiler {
     const indentStr = '    '.repeat(indent);
     const ifPart = `${indentStr}if ${block.condition}:`;
 
-    const ifBody = block.children && block.children.length > 0
-      ? block.children.map(child => this.compileBlock(child, indent + 1)).join('\n')
+    // Compile the if body (TRUE branch)
+    const ifBody = block.ifBody && block.ifBody.length > 0
+      ? block.ifBody.map(child => this.compileBlock(child, indent + 1)).join('\n')
       : `${indentStr}    pass`;
 
     let result = `${ifPart}\n${ifBody}`;
 
-    if (block.elseChildren && block.elseChildren.length > 0) {
+    // Handle else/elif based on elseType
+    if (block.elseType === 'elif' && block.elseBody.length > 0) {
+      // Elif: the elseBody should contain exactly one if block
+      const elifBlock = block.elseBody[0];
+      if (elifBlock && elifBlock.type === 'if') {
+        // Compile as "elif" instead of "else: if"
+        const elifIfBlock = elifBlock as IfBlock;
+        const elifPart = `${indentStr}elif ${elifIfBlock.condition}:`;
+
+        const elifBody = elifIfBlock.ifBody && elifIfBlock.ifBody.length > 0
+          ? elifIfBlock.ifBody.map(child => this.compileBlock(child, indent + 1)).join('\n')
+          : `${indentStr}    pass`;
+
+        result += `\n${elifPart}\n${elifBody}`;
+
+        // Recursively handle the elif's else/elif
+        if (elifIfBlock.elseType !== 'none') {
+          const innerElse = this.compileElseOrElif(elifIfBlock, indent);
+          if (innerElse) {
+            result += `\n${innerElse}`;
+          }
+        }
+      }
+    } else if (block.elseType === 'else' && block.elseBody.length > 0) {
+      // Regular else: compile all statements in elseBody
       const elsePart = `${indentStr}else:`;
-      const elseBody = block.elseChildren
+      const elseBody = block.elseBody
         .map(child => this.compileBlock(child, indent + 1))
         .join('\n');
       result += `\n${elsePart}\n${elseBody}`;
     }
 
     return result;
+  }
+
+  private compileElseOrElif(block: IfBlock, indent: number): string {
+    const indentStr = '    '.repeat(indent);
+
+    if (block.elseType === 'elif' && block.elseBody.length > 0) {
+      const elifBlock = block.elseBody[0];
+      if (elifBlock && elifBlock.type === 'if') {
+        const elifIfBlock = elifBlock as IfBlock;
+        const elifPart = `${indentStr}elif ${elifIfBlock.condition}:`;
+
+        const elifBody = elifIfBlock.ifBody && elifIfBlock.ifBody.length > 0
+          ? elifIfBlock.ifBody.map(child => this.compileBlock(child, indent + 1)).join('\n')
+          : `${indentStr}    pass`;
+
+        let result = `${elifPart}\n${elifBody}`;
+
+        // Recursively handle nested elif/else
+        if (elifIfBlock.elseType !== 'none') {
+          const innerElse = this.compileElseOrElif(elifIfBlock, indent);
+          if (innerElse) {
+            result += `\n${innerElse}`;
+          }
+        }
+
+        return result;
+      }
+    } else if (block.elseType === 'else' && block.elseBody.length > 0) {
+      const elsePart = `${indentStr}else:`;
+      const elseBody = block.elseBody
+        .map(child => this.compileBlock(child, indent + 1))
+        .join('\n');
+      return `${elsePart}\n${elseBody}`;
+    }
+
+    return '';
   }
 
   private compileFor(block: ForBlock, indent: number): string {

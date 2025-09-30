@@ -49,8 +49,9 @@ export const Canvas: React.FC = () => {
       id: `if-${Date.now()}`,
       type: 'if',
       condition: 'True',
-      children: [],
-      elseChildren: [],
+      ifBody: [],
+      elseType: 'none',
+      elseBody: [],
     };
     setBlocks([...blocks, newBlock]);
   };
@@ -92,7 +93,7 @@ export const Canvas: React.FC = () => {
         case 'variable':
           return { id, type: 'variable', name: 'new_var', value: '0' };
         case 'if':
-          return { id, type: 'if', condition: 'True', children: [], elseChildren: [] };
+          return { id, type: 'if', condition: 'True', ifBody: [], elseType: 'none', elseBody: [] };
         case 'for':
           return { id, type: 'for', iterator: 'i', iterable: 'range(10)', children: [] };
         case 'return':
@@ -106,24 +107,61 @@ export const Canvas: React.FC = () => {
     if (!newBlock) return;
 
     const addToParent = (block: Block): Block => {
-      if (block.id === parentId && 'children' in block) {
+      // Handle function blocks
+      if (block.id === parentId && block.type === 'function') {
         return {
           ...block,
-          children: [...(block.children || []), newBlock]
+          children: [...block.children, newBlock]
         };
       }
-      if ('children' in block && block.children) {
+
+      // Handle if blocks - ifBody
+      if (block.id === parentId && block.type === 'if') {
+        return {
+          ...block,
+          ifBody: [...block.ifBody, newBlock]
+        };
+      }
+
+      // Handle if blocks - elseBody
+      if (parentId === block.id + '-else' && block.type === 'if') {
+        return {
+          ...block,
+          elseBody: [...block.elseBody, newBlock]
+        };
+      }
+
+      // Handle for blocks
+      if (block.id === parentId && block.type === 'for') {
+        return {
+          ...block,
+          children: [...block.children, newBlock]
+        };
+      }
+
+      // Recursively search in children
+      if (block.type === 'function') {
         return {
           ...block,
           children: block.children.map(addToParent)
         };
       }
-      if (block.type === 'if' && 'elseChildren' in block && block.elseChildren) {
+
+      if (block.type === 'if') {
         return {
           ...block,
-          elseChildren: block.elseChildren.map(addToParent)
+          ifBody: block.ifBody.map(addToParent),
+          elseBody: block.elseBody.map(addToParent)
         };
       }
+
+      if (block.type === 'for') {
+        return {
+          ...block,
+          children: block.children.map(addToParent)
+        };
+      }
+
       return block;
     };
 
@@ -239,8 +277,9 @@ export const Canvas: React.FC = () => {
           </div>
         )}
 
-        {/* Canvas Area */}
-        <div className="space-y-4">
+        {/* Canvas Area - with horizontal scroll */}
+        <div className="bg-white rounded-lg shadow-md p-6 overflow-x-auto">
+          <div className="space-y-4 min-w-fit">
           {blocks.length === 0 ? (
             <div className="border-4 border-dashed border-gray-300 rounded-lg p-12 text-center">
               <div className="text-gray-400 text-lg mb-2">
@@ -302,6 +341,7 @@ export const Canvas: React.FC = () => {
               }
             })
           )}
+          </div>
         </div>
 
         {/* Code Export Section */}

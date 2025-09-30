@@ -153,16 +153,16 @@ export class PythonParser {
 
   private parseIf(lines: Array<{text: string, indent: number, trimmed: string}>, startIndex: number): { block: IfBlock, nextIndex: number } {
     const line = lines[startIndex];
-    const match = line.trimmed.match(/^if\s+(.+):/);
+    const match = line.trimmed.match(/^(?:if|elif)\s+(.+):/);
 
     const condition = match ? match[1].trim() : 'True';
     const ifIndent = line.indent;
 
-    // Parse if body
+    // Parse if body (TRUE branch)
     let bodyStartIndex = startIndex + 1;
-    const ifChildren = this.parseLines(lines, bodyStartIndex, ifIndent);
+    const ifBody = this.parseLines(lines, bodyStartIndex, ifIndent);
 
-    // Find next index and check for else
+    // Find next index and check for elif/else
     let nextIndex = bodyStartIndex;
     while (nextIndex < lines.length) {
       const nextLine = lines[nextIndex];
@@ -172,19 +172,36 @@ export class PythonParser {
       nextIndex++;
     }
 
-    let elseChildren: Block[] = [];
-    if (nextIndex < lines.length && lines[nextIndex].trimmed === 'else:' && lines[nextIndex].indent === ifIndent) {
-      // Parse else body
-      const elseBodyStart = nextIndex + 1;
-      elseChildren = this.parseLines(lines, elseBodyStart, ifIndent);
+    let elseType: 'none' | 'elif' | 'else' = 'none';
+    let elseBody: Block[] = [];
 
-      // Move nextIndex past the else block
-      while (nextIndex < lines.length) {
-        const nextLine = lines[nextIndex];
-        if (nextLine.trimmed && nextLine.indent <= ifIndent && nextIndex > elseBodyStart) {
-          break;
+    if (nextIndex < lines.length && lines[nextIndex].indent === ifIndent) {
+      const nextLine = lines[nextIndex];
+
+      // Check for elif
+      if (nextLine.trimmed.startsWith('elif ')) {
+        elseType = 'elif';
+        // Parse elif as a nested if block
+        const elifResult = this.parseIf(lines, nextIndex);
+        elseBody = [elifResult.block];
+        nextIndex = elifResult.nextIndex;
+      }
+      // Check for else
+      else if (nextLine.trimmed === 'else:') {
+        elseType = 'else';
+        // Parse else body
+        const elseBodyStart = nextIndex + 1;
+        elseBody = this.parseLines(lines, elseBodyStart, ifIndent);
+
+        // Move nextIndex past the else block
+        nextIndex = elseBodyStart;
+        while (nextIndex < lines.length) {
+          const laterLine = lines[nextIndex];
+          if (laterLine.trimmed && laterLine.indent <= ifIndent) {
+            break;
+          }
+          nextIndex++;
         }
-        nextIndex++;
       }
     }
 
@@ -193,8 +210,9 @@ export class PythonParser {
         id: this.generateId('if'),
         type: 'if',
         condition,
-        children: ifChildren,
-        elseChildren: elseChildren.length > 0 ? elseChildren : undefined
+        ifBody,
+        elseType,
+        elseBody
       },
       nextIndex
     };

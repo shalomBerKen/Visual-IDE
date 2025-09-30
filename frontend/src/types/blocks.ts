@@ -26,11 +26,14 @@ export interface VariableBlock extends BaseBlock {
   value: string;
 }
 
+export type ElseType = 'none' | 'elif' | 'else';
+
 export interface IfBlock extends BaseBlock {
   type: 'if';
   condition: string;
-  children: Block[];
-  elseChildren?: Block[];
+  ifBody: Block[];
+  elseType: ElseType;  // Determines what kind of else branch this has
+  elseBody: Block[];   // If elseType='elif', must contain exactly one IfBlock
 }
 
 export interface ForBlock extends BaseBlock {
