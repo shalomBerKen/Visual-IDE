@@ -308,6 +308,7 @@ export const Canvas: React.FC = () => {
                       key={block.id}
                       block={block as VariableBlockType}
                       onUpdate={updateBlock}
+                      onDelete={() => deleteBlock(block.id)}
                     />
                   );
                 case 'if':
@@ -317,6 +318,7 @@ export const Canvas: React.FC = () => {
                       block={block as IfBlockType}
                       onUpdate={updateBlock}
                       onAddChild={addChildBlock}
+                      onDelete={() => deleteBlock(block.id)}
                     />
                   );
                 case 'for':
@@ -326,6 +328,7 @@ export const Canvas: React.FC = () => {
                       block={block as ForBlockType}
                       onUpdate={updateBlock}
                       onAddChild={addChildBlock}
+                      onDelete={() => deleteBlock(block.id)}
                     />
                   );
                 case 'return':
@@ -334,6 +337,7 @@ export const Canvas: React.FC = () => {
                       key={block.id}
                       block={block as ReturnBlockType}
                       onUpdate={updateBlock}
+                      onDelete={() => deleteBlock(block.id)}
                     />
                   );
                 default:

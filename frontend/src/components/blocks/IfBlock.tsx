@@ -156,14 +156,21 @@ export const IfBlock: React.FC<Props> = ({
         {/* RIGHT SIDE - False branch */}
         <div className={`table-cell ${hasFalseHandling ? 'p-6 w-1/2' : 'p-4 w-auto'} bg-red-50/20 align-top`}>
           <div className="mb-4">
-            <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded inline-block">
-              ✗ FALSE
-            </span>
-            {block.elseType === 'elif' && (
-              <span className="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded inline-block ml-2">
-                → ELIF
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded inline-block">
+                ✗ FALSE
               </span>
-            )}
+              {block.elseType === 'elif' && (
+                <span className="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded inline-block">
+                  → ELIF
+                </span>
+              )}
+              {block.elseType === 'else' && (
+                <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded inline-block">
+                  → ELSE
+                </span>
+              )}
+            </div>
           </div>
 
           {!hasFalseHandling ? (
@@ -210,7 +217,12 @@ export const IfBlock: React.FC<Props> = ({
                   }}
                   onDelete={(childId) => {
                     const newElseBody = block.elseBody.filter(c => c.id !== childId);
-                    onUpdate?.({ ...block, elseBody: newElseBody });
+                    // If this was an elif block and we're deleting it, return to 'none' state
+                    if (block.elseType === 'elif' && newElseBody.length === 0) {
+                      onUpdate?.({ ...block, elseType: 'none', elseBody: [] });
+                    } else {
+                      onUpdate?.({ ...block, elseBody: newElseBody });
+                    }
                   }}
                   onAddChild={onAddChild}
                   availableVariables={availableVariables}

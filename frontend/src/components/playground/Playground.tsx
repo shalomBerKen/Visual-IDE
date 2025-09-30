@@ -49,7 +49,7 @@ export const Playground: React.FC = () => {
           type: 'for',
           iterator: 'i',
           iterable: 'range(10)',
-          body: []
+          children: []
         } as ForBlockType;
 
       case 'return':
@@ -77,7 +77,7 @@ export const Playground: React.FC = () => {
         } else if (block.type === 'if') {
           return { ...block, ifBody: [...block.ifBody, child] };
         } else if (block.type === 'for') {
-          return { ...block, body: [...block.body, child] };
+          return { ...block, children: [...block.children, child] };
         }
       }
 
@@ -96,7 +96,7 @@ export const Playground: React.FC = () => {
           elseBody: block.elseBody.map(addChildToBlock)
         };
       } else if (block.type === 'for') {
-        return { ...block, body: block.body.map(addChildToBlock) };
+        return { ...block, children: block.children.map(addChildToBlock) };
       }
 
       return block;
@@ -129,6 +129,7 @@ export const Playground: React.FC = () => {
             block={testBlock as VariableBlockType}
             onUpdate={(updated) => setTestBlock(updated)}
             availableVariables={availableVars}
+            onDelete={() => setTestBlock(null)}
           />
         );
 
@@ -150,6 +151,7 @@ export const Playground: React.FC = () => {
             onUpdate={(updated) => setTestBlock(updated)}
             availableVariables={availableVars}
             onAddChild={handleAddChild}
+            onDelete={() => setTestBlock(null)}
           />
         );
 
@@ -159,6 +161,7 @@ export const Playground: React.FC = () => {
             block={testBlock as ReturnBlockType}
             onUpdate={(updated) => setTestBlock(updated)}
             availableVariables={availableVars}
+            onDelete={() => setTestBlock(null)}
           />
         );
 
