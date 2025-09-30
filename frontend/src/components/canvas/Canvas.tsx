@@ -12,8 +12,7 @@ import { VariableBlock } from '../blocks/VariableBlock';
 import { IfBlock } from '../blocks/IfBlock';
 import { ForBlock } from '../blocks/ForBlock';
 import { ReturnBlock } from '../blocks/ReturnBlock';
-import { PythonCompiler } from '../../core/compiler/pythonCompiler';
-import { PythonParser } from '../../core/parser/pythonParser';
+import { PythonLanguageService } from '../../core/languages/PythonLanguageService';
 import { useBlockManager } from '../../hooks/useBlockManager';
 import { useChildManager } from '../../hooks/useChildManager';
 
@@ -21,8 +20,7 @@ export const Canvas: React.FC = () => {
   const [showCode, setShowCode] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [importCode, setImportCode] = useState('');
-  const compiler = new PythonCompiler();
-  const parser = new PythonParser();
+  const languageService = new PythonLanguageService();
 
   // Use custom hooks for block management
   const {
@@ -52,7 +50,7 @@ export const Canvas: React.FC = () => {
 
   const handleImportCode = () => {
     try {
-      const parsedBlocks = parser.parse(importCode);
+      const parsedBlocks = languageService.parse(importCode);
       addBlocks(parsedBlocks);
       setImportCode('');
       setShowImport(false);
@@ -245,14 +243,14 @@ export const Canvas: React.FC = () => {
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-gray-400">Generated Python Code:</span>
                   <button
-                    onClick={() => navigator.clipboard.writeText(compiler.compile(blocks))}
+                    onClick={() => navigator.clipboard.writeText(languageService.compile(blocks))}
                     className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs"
                   >
                     Copy
                   </button>
                 </div>
                 <pre className="whitespace-pre-wrap">
-                  {compiler.compile(blocks)}
+                  {languageService.compile(blocks)}
                 </pre>
               </div>
             )}

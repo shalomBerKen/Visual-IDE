@@ -1,14 +1,8 @@
-import type { Block, FunctionBlock, VariableBlock, IfBlock, ForBlock, ReturnBlock } from '../../types/blocks';
+import type { Block, FunctionBlock, IfBlock, ForBlock } from '../../types/blocks';
+import { BlockFactory } from '../../services/BlockFactory';
 
 export class PythonParser {
-  private currentId = 0;
-
-  private generateId(type: string): string {
-    return `${type}-${Date.now()}-${this.currentId++}`;
-  }
-
   parse(code: string): Block[] {
-    this.currentId = 0;
     const lines = code.split('\n').map(line => ({
       text: line,
       indent: this.getIndentation(line),
@@ -68,11 +62,11 @@ export class PythonParser {
       // Parse return statement
       if (line.trimmed.startsWith('return ')) {
         const returnValue = line.trimmed.substring(7).trim() || 'None';
-        blocks.push({
-          id: this.generateId('return'),
-          type: 'return',
-          value: returnValue
-        } as ReturnBlock);
+        const returnBlock = BlockFactory.createReturnBlock();
+        if (returnBlock) {
+          returnBlock.value = returnValue;
+          blocks.push(returnBlock);
+        }
         i++;
         continue;
       }
@@ -83,12 +77,12 @@ export class PythonParser {
         if (parts.length >= 2) {
           const varName = parts[0].trim();
           const varValue = parts.slice(1).join('=').trim();
-          blocks.push({
-            id: this.generateId('variable'),
-            type: 'variable',
-            name: varName,
-            value: varValue
-          } as VariableBlock);
+          const variableBlock = BlockFactory.createVariableBlock();
+          if (variableBlock) {
+            variableBlock.name = varName;
+            variableBlock.value = varValue;
+            blocks.push(variableBlock);
+          }
         }
         i++;
         continue;
@@ -106,14 +100,9 @@ export class PythonParser {
     const match = line.trimmed.match(/^def\s+(\w+)\s*\((.*?)\)\s*:/);
 
     if (!match) {
+      const defaultBlock = BlockFactory.createFunctionBlock();
       return {
-        block: {
-          id: this.generateId('function'),
-          type: 'function',
-          name: 'unknown_function',
-          parameters: [],
-          children: []
-        },
+        block: defaultBlock,
         nextIndex: startIndex + 1
       };
     }
@@ -139,14 +128,13 @@ export class PythonParser {
       nextIndex++;
     }
 
+    const functionBlock = BlockFactory.createFunctionBlock();
+    functionBlock.name = functionName;
+    functionBlock.parameters = parameters;
+    functionBlock.children = children;
+
     return {
-      block: {
-        id: this.generateId('function'),
-        type: 'function',
-        name: functionName,
-        parameters,
-        children
-      },
+      block: functionBlock,
       nextIndex
     };
   }
@@ -205,15 +193,14 @@ export class PythonParser {
       }
     }
 
+    const ifBlock = BlockFactory.createIfBlock();
+    ifBlock.condition = condition;
+    ifBlock.ifBody = ifBody;
+    ifBlock.elseType = elseType;
+    ifBlock.elseBody = elseBody;
+
     return {
-      block: {
-        id: this.generateId('if'),
-        type: 'if',
-        condition,
-        ifBody,
-        elseType,
-        elseBody
-      },
+      block: ifBlock,
       nextIndex
     };
   }
@@ -240,14 +227,13 @@ export class PythonParser {
       nextIndex++;
     }
 
+    const forBlock = BlockFactory.createForBlock();
+    forBlock.iterator = iterator;
+    forBlock.iterable = iterable;
+    forBlock.children = children;
+
     return {
-      block: {
-        id: this.generateId('for'),
-        type: 'for',
-        iterator,
-        iterable,
-        children
-      },
+      block: forBlock,
       nextIndex
     };
   }
