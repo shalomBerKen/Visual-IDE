@@ -97,6 +97,49 @@ Visual IDE
    └─ [Future languages...]
 ```
 
+### ארכיטקטורה מעודכנת (אחרי Refactoring 2025-10-03)
+
+```
+src/
+├── services/
+│   └── BlockFactory.ts          ← יצירת blocks (Single source of truth)
+│
+├── hooks/
+│   ├── useBlockManager.ts       ← State management של blocks
+│   └── useChildManager.ts       ← Nested block operations
+│
+├── contexts/
+│   └── LanguageContext.tsx      ← Language service provider
+│
+├── core/
+│   ├── interfaces/
+│   │   └── LanguageService.ts   ← Interface כללי לכל שפה
+│   │
+│   └── languages/
+│       ├── PythonLanguageService.ts  ← Python implementation
+│       │
+│       └── python/
+│           ├── pythonCompiler.ts     ← Blocks → Python code
+│           └── pythonParser.ts       ← Python code → Blocks
+│
+└── components/
+    ├── blocks/                   ← Block UI components
+    │   ├── FunctionBlock.tsx
+    │   ├── VariableBlock.tsx
+    │   ├── IfBlock.tsx
+    │   ├── ForBlock.tsx
+    │   └── ReturnBlock.tsx
+    │
+    └── canvas/
+        └── Canvas.tsx            ← Main workspace
+```
+
+**עקרונות הארכיטקטורה החדשה:**
+- **Modularity**: כל מודול אחראי על תפקיד אחד בלבד
+- **Language-Agnostic**: קל להוסיף שxxxxxxxxxxxרק LanguageService חדש)
+- **Performance**: LanguageService נוצר פעם אחת בContext
+- **Type-Safety**: TypeScript interfaces מבטיחים עקביות
+
 ---
 
 ## שלבי הפיתוח
@@ -117,10 +160,45 @@ Visual IDE
 **Success Criteria**:
 משתמש יכול להדביק פונקציה פשוטה, לראות אותה ויזואלית, לערוך, ולקבל קוד תקין בחזרה.
 
-### Phase 2: Language Engine
-**מטרה**: הפיכה למודולרי - תמיכה ב-JS/TS
+### Phase 1.5: Major Refactoring (✅ Complete - 2025-10-03)
+**מטרה**: הפיכת הקוד למודולרי וסקיילבילי
 
-הוספת שפה שנייה תאמת שהארכיטקטורה עובדת.
+**מה נעשה:**
+
+**Phase 1: Extract Hooks**
+- יצירת `useBlockManager` - ניהול state של blocks
+- יצירת `useChildManager` - הוספת children מקוננים
+- הפרדת logic מ-UI components
+
+**Phase 2: Extract BlockFactory**
+- ריכוז כל יצירת ה-blocks במקום אחד
+- ID generation עקבי
+- תמיכה ב-cloning ו-custom values
+
+**Phase 3: Language-Agnostic Architecture**
+- יצירת `LanguageService` interface
+- יצירת `PythonLanguageService` implementation
+- Parser משתמש ב-BlockFactory (הסרת duplicate code)
+
+**Phase 4: LanguageContext & Final Structure**
+- יצירת `LanguageContext` להזרקת LanguageService
+- העברת קבצים ל-`core/languages/python/`
+- UI דינמי לפי שפה (כולל "Show Python Code")
+- Performance: LanguageService נוצר פעם אחת
+
+**תוצאות:**
+- ✅ קוד מודולרי ב-100%
+- ✅ מוכן לתמיכה בשפות נוספות
+- ✅ Performance משופר
+- ✅ קל יותר לתחזוקה ובדיקות
+
+### Phase 2: Language Engine
+**מטרה**: תמיכה ב-JavaScript/TypeScript
+
+הארכיטקטורה מוכנה! רק צריך:
+1. ליצור `JavaScriptLanguageService`
+2. להוסיף JavaScript compiler ו-parser
+3. להוסיף language switcher ב-UI
 
 ### Phase 3: Advanced Features
 - Blocks מתקדמים (classes, async, exceptions)
@@ -245,5 +323,5 @@ Bubble, Webflow וחברים מעולים, אבל:
 
 ---
 
-*Last Updated: 2025-09-30*
-*Project Status: Phase 1 - MVP Complete! 🎉*
+*Last Updated: 2025-10-03*
+*Project Status: Phase 1 - MVP Complete + Major Refactoring Done! 🎉*
