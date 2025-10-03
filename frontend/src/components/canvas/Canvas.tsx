@@ -12,7 +12,7 @@ import { VariableBlock } from '../blocks/VariableBlock';
 import { IfBlock } from '../blocks/IfBlock';
 import { ForBlock } from '../blocks/ForBlock';
 import { ReturnBlock } from '../blocks/ReturnBlock';
-import { PythonLanguageService } from '../../core/languages/PythonLanguageService';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useBlockManager } from '../../hooks/useBlockManager';
 import { useChildManager } from '../../hooks/useChildManager';
 
@@ -20,7 +20,7 @@ export const Canvas: React.FC = () => {
   const [showCode, setShowCode] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [importCode, setImportCode] = useState('');
-  const languageService = new PythonLanguageService();
+  const { languageService, languageName } = useLanguage();
 
   // Use custom hooks for block management
   const {
@@ -55,7 +55,7 @@ export const Canvas: React.FC = () => {
       setImportCode('');
       setShowImport(false);
     } catch (error) {
-      alert('Error parsing Python code. Please check your syntax.');
+      alert(`Error parsing ${languageName} code. Please check your syntax.`);
       console.error(error);
     }
   };
@@ -119,7 +119,7 @@ export const Canvas: React.FC = () => {
                 className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors flex items-center gap-2"
               >
                 <span>📥</span>
-                <span>Import Python Code</span>
+                <span>Import {languageName} Code</span>
               </button>
             </div>
           </div>
@@ -129,7 +129,7 @@ export const Canvas: React.FC = () => {
         {showImport && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-3">
-              Paste Python Code
+              Paste {languageName} Code
             </h3>
             <textarea
               value={importCode}
@@ -235,13 +235,13 @@ export const Canvas: React.FC = () => {
               onClick={() => setShowCode(!showCode)}
               className="w-full py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium"
             >
-              {showCode ? 'Hide Python Code' : 'Show Python Code'}
+              {showCode ? `Hide ${languageName} Code` : `Show ${languageName} Code`}
             </button>
 
             {showCode && (
               <div className="bg-gray-900 text-green-400 rounded-lg p-6 font-mono text-sm">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-gray-400">Generated Python Code:</span>
+                  <span className="text-gray-400">Generated {languageName} Code:</span>
                   <button
                     onClick={() => navigator.clipboard.writeText(languageService.compile(blocks))}
                     className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs"

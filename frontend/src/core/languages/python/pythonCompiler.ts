@@ -1,4 +1,4 @@
-import type { Block, FunctionBlock, VariableBlock, IfBlock, ForBlock, ReturnBlock } from '../../types/blocks';
+import type { Block, FunctionBlock, VariableBlock, IfBlock, ForBlock, ReturnBlock } from '../../../types/blocks';
 
 export class PythonCompiler {
   compile(blocks: Block[]): string {

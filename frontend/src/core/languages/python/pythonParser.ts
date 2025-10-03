@@ -1,5 +1,5 @@
-import type { Block, FunctionBlock, IfBlock, ForBlock } from '../../types/blocks';
-import { BlockFactory } from '../../services/BlockFactory';
+import type { Block, FunctionBlock, IfBlock, ForBlock } from '../../../types/blocks';
+import { BlockFactory } from '../../../services/BlockFactory';
 
 export class PythonParser {
   parse(code: string): Block[] {

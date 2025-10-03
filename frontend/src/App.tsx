@@ -1,4 +1,5 @@
 import { Canvas } from './components/canvas/Canvas';
+import { LanguageProvider } from './contexts/LanguageContext';
 // import { Playground } from './components/playground/Playground';
 // import { Tabs } from './components/common/Tabs';
 // import { TabProvider, useTab } from './contexts/TabContext';
@@ -6,9 +7,11 @@ import { Canvas } from './components/canvas/Canvas';
 // Simplified App - removed Playground tab for now
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Canvas />
-    </div>
+    <LanguageProvider>
+      <div className="min-h-screen bg-gray-50">
+        <Canvas />
+      </div>
+    </LanguageProvider>
   );
 }
 

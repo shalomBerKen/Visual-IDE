@@ -1,7 +1,7 @@
 import type { Block } from '../../types/blocks';
 import type { LanguageService } from '../interfaces/LanguageService';
-import { PythonCompiler } from '../compiler/pythonCompiler';
-import { PythonParser } from '../parser/pythonParser';
+import { PythonCompiler } from './python/pythonCompiler';
+import { PythonParser } from './python/pythonParser';
 
 /**
  * Language service implementation for Python
