@@ -1,4 +1,4 @@
-import type { Block, FunctionBlock, VariableBlock, IfBlock, ForBlock, ReturnBlock } from '../../../types/blocks';
+import type { Block, FunctionBlock, VariableBlock, IfBlock, ForBlock, ReturnBlock, FunctionCallBlock } from '../../../types/blocks';
 
 export class PythonCompiler {
   compile(blocks: Block[]): string {
@@ -19,6 +19,8 @@ export class PythonCompiler {
         return this.compileFor(block as ForBlock, indent);
       case 'return':
         return this.compileReturn(block as ReturnBlock, indent);
+      case 'functionCall':
+        return this.compileFunctionCall(block as FunctionCallBlock, indent);
       default:
         return `${indentStr}# Unknown block type`;
     }
@@ -141,5 +143,11 @@ export class PythonCompiler {
   private compileReturn(block: ReturnBlock, indent: number): string {
     const indentStr = '    '.repeat(indent);
     return `${indentStr}return ${block.value}`;
+  }
+
+  private compileFunctionCall(block: FunctionCallBlock, indent: number): string {
+    const indentStr = '    '.repeat(indent);
+    const args = block.arguments.join(', ');
+    return `${indentStr}${block.functionName}(${args})`;
   }
 }

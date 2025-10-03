@@ -5,13 +5,15 @@ import type {
   VariableBlock as VariableBlockType,
   IfBlock as IfBlockType,
   ForBlock as ForBlockType,
-  ReturnBlock as ReturnBlockType
+  ReturnBlock as ReturnBlockType,
+  FunctionCallBlock as FunctionCallBlockType
 } from '../../types/blocks';
 import { FunctionBlock } from '../blocks/FunctionBlock';
 import { VariableBlock } from '../blocks/VariableBlock';
 import { IfBlock } from '../blocks/IfBlock';
 import { ForBlock } from '../blocks/ForBlock';
 import { ReturnBlock } from '../blocks/ReturnBlock';
+import { FunctionCallBlock } from '../blocks/FunctionCallBlock';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useBlockManager } from '../../hooks/useBlockManager';
 import { useChildManager } from '../../hooks/useChildManager';
@@ -41,6 +43,7 @@ export const Canvas: React.FC = () => {
   const addIfBlock = () => addBlock('if');
   const addForBlock = () => addBlock('for');
   const addReturnBlock = () => addBlock('return');
+  const addFunctionCallBlock = () => addBlock('functionCall');
 
   // Wrapper for adding child blocks - uses the hook
   const addChildBlock = (parentId: string, blockType: string) => {
@@ -110,6 +113,13 @@ export const Canvas: React.FC = () => {
             >
               <span className="text-xl">+</span>
               <span>Return</span>
+            </button>
+            <button
+              onClick={addFunctionCallBlock}
+              className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors flex items-center gap-2"
+            >
+              <span className="text-xl">+</span>
+              <span>Call Function</span>
             </button>
 
             {/* Import Button */}
@@ -216,6 +226,15 @@ export const Canvas: React.FC = () => {
                     <ReturnBlock
                       key={block.id}
                       block={block as ReturnBlockType}
+                      onUpdate={updateBlock}
+                      onDelete={() => deleteBlock(block.id)}
+                    />
+                  );
+                case 'functionCall':
+                  return (
+                    <FunctionCallBlock
+                      key={block.id}
+                      block={block as FunctionCallBlockType}
                       onUpdate={updateBlock}
                       onDelete={() => deleteBlock(block.id)}
                     />

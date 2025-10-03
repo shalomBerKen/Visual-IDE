@@ -71,6 +71,25 @@ export class PythonParser {
         continue;
       }
 
+      // Parse function call (must come before variable assignment)
+      if (line.trimmed.match(/^(\w+)\s*\(/)) {
+        const match = line.trimmed.match(/^(\w+)\s*\((.*?)\)\s*$/);
+        if (match) {
+          const functionName = match[1];
+          const argsStr = match[2].trim();
+          const args = argsStr ? argsStr.split(',').map(a => a.trim()) : [];
+
+          const functionCallBlock = BlockFactory.createFunctionCallBlock();
+          if (functionCallBlock) {
+            functionCallBlock.functionName = functionName;
+            functionCallBlock.arguments = args;
+            blocks.push(functionCallBlock);
+          }
+          i++;
+          continue;
+        }
+      }
+
       // Parse variable assignment
       if (line.trimmed.includes('=') && !line.trimmed.includes('==')) {
         const parts = line.trimmed.split('=');

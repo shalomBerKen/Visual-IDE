@@ -5,6 +5,7 @@ import type {
   IfBlock,
   ForBlock,
   ReturnBlock,
+  FunctionCallBlock,
   BlockType
 } from '../types/blocks';
 
@@ -41,6 +42,9 @@ export class BlockFactory {
 
       case 'return':
         return this.createReturnBlock(id);
+
+      case 'functionCall':
+        return this.createFunctionCallBlock(id);
 
       default:
         console.warn(`Unknown block type: ${type}`);
@@ -112,6 +116,18 @@ export class BlockFactory {
   }
 
   /**
+   * Create a function call block with default values
+   */
+  static createFunctionCallBlock(id?: string): FunctionCallBlock {
+    return {
+      id: id || this.generateId('functionCall'),
+      type: 'functionCall',
+      functionName: 'my_function',
+      arguments: [],
+    };
+  }
+
+  /**
    * Create a block with custom initial values
    * Useful for importing or templating
    */
@@ -158,6 +174,11 @@ export class BlockFactory {
       } as ForBlock;
     }
 
+    // FunctionCallBlock doesn't have children, just return cloned
+    if (block.type === 'functionCall') {
+      return clonedBlock;
+    }
+
     return clonedBlock;
   }
 
@@ -177,6 +198,8 @@ export class BlockFactory {
         return { iterator: 'i', iterable: 'range(10)' };
       case 'return':
         return { value: 'None' };
+      case 'functionCall':
+        return { functionName: 'my_function', arguments: [] };
       default:
         return {};
     }

@@ -5,7 +5,8 @@ export type BlockType =
   | 'variable'
   | 'if'
   | 'for'
-  | 'return';
+  | 'return'
+  | 'functionCall';
 
 export interface BaseBlock {
   id: string;
@@ -48,12 +49,19 @@ export interface ReturnBlock extends BaseBlock {
   value: string;
 }
 
+export interface FunctionCallBlock extends BaseBlock {
+  type: 'functionCall';
+  functionName: string;
+  arguments: string[];  // Array of argument expressions
+}
+
 export type Block =
   | FunctionBlock
   | VariableBlock
   | IfBlock
   | ForBlock
-  | ReturnBlock;
+  | ReturnBlock
+  | FunctionCallBlock;
 
 // Re-export types explicitly
 export type {
@@ -61,5 +69,6 @@ export type {
   VariableBlock,
   IfBlock,
   ForBlock,
-  ReturnBlock
+  ReturnBlock,
+  FunctionCallBlock
 };
