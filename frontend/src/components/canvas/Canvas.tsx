@@ -14,6 +14,8 @@ import { IfBlock } from '../blocks/IfBlock';
 import { ForBlock } from '../blocks/ForBlock';
 import { ReturnBlock } from '../blocks/ReturnBlock';
 import { FunctionCallBlock } from '../blocks/FunctionCallBlock';
+import { VariableEditModal } from '../modals/VariableEditModal';
+import { FunctionEditModal } from '../modals/FunctionEditModal';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useBlockManager } from '../../hooks/useBlockManager';
 import { useChildManager } from '../../hooks/useChildManager';
@@ -22,6 +24,7 @@ export const Canvas: React.FC = () => {
   const [showCode, setShowCode] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [importCode, setImportCode] = useState('');
+  const [createModalType, setCreateModalType] = useState<'variable' | 'function' | null>(null);
   const { languageService, languageName } = useLanguage();
 
   // Use custom hooks for block management
@@ -38,12 +41,27 @@ export const Canvas: React.FC = () => {
   const { addChild } = useChildManager(createBlock);
 
   // Wrapper functions for adding specific block types
-  const addFunctionBlock = () => addBlock('function');
-  const addVariableBlock = () => addBlock('variable');
+  const addFunctionBlock = () => setCreateModalType('function');
+  const addVariableBlock = () => setCreateModalType('variable');
   const addIfBlock = () => addBlock('if');
   const addForBlock = () => addBlock('for');
   const addReturnBlock = () => addBlock('return');
   const addFunctionCallBlock = () => addBlock('functionCall');
+
+  // Handle creating block from modal
+  const handleCreateVariable = (data: Partial<VariableBlockType>) => {
+    const block = createBlock('variable') as VariableBlockType;
+    const newBlock = { ...block, ...data };
+    setBlocks([...blocks, newBlock]);
+    setCreateModalType(null);
+  };
+
+  const handleCreateFunction = (data: Partial<FunctionBlockType>) => {
+    const block = createBlock('function') as FunctionBlockType;
+    const newBlock = { ...block, ...data };
+    setBlocks([...blocks, newBlock]);
+    setCreateModalType(null);
+  };
 
   // Wrapper for adding child blocks - uses the hook
   const addChildBlock = (parentId: string, blockType: string) => {
@@ -276,6 +294,21 @@ export const Canvas: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Create Modals */}
+      <VariableEditModal
+        isOpen={createModalType === 'variable'}
+        onClose={() => setCreateModalType(null)}
+        onSave={handleCreateVariable}
+        mode="create"
+      />
+
+      <FunctionEditModal
+        isOpen={createModalType === 'function'}
+        onClose={() => setCreateModalType(null)}
+        onSave={handleCreateFunction}
+        mode="create"
+      />
     </div>
   );
 };

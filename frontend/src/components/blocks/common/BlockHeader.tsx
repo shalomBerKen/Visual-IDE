@@ -5,6 +5,7 @@ interface BlockHeaderProps {
   color: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'cyan';
   pythonKeyword?: string;
   onDelete?: () => void;
+  onEdit?: () => void;
   onToggleExpand?: () => void;
   isExpanded?: boolean;
 }
@@ -45,6 +46,7 @@ export const BlockHeader: React.FC<BlockHeaderProps> = ({
   color,
   pythonKeyword,
   onDelete,
+  onEdit,
   onToggleExpand,
   isExpanded,
 }) => {
@@ -66,6 +68,15 @@ export const BlockHeader: React.FC<BlockHeaderProps> = ({
       <div className="flex items-center gap-2">
         {pythonKeyword && (
           <span className="text-sm text-gray-500">{pythonKeyword}</span>
+        )}
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            className={`${colorClasses[color].button} text-sm font-medium`}
+            title="Edit all properties"
+          >
+            ✎ Edit
+          </button>
         )}
         {onDelete && (
           <button
