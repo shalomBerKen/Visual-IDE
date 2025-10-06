@@ -26,14 +26,16 @@ export const VariableEditModal: React.FC<VariableEditModalProps> = ({
 }) => {
   const [name, setName] = useState(initialData.name || '');
   const [value, setValue] = useState(initialData.value || '');
+  const prevOpenRef = React.useRef(false);
 
-  // Reset state when modal opens/closes or initialData changes
+  // Reset state only when modal transitions from closed to open
   React.useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevOpenRef.current) {
       setName(initialData.name || '');
       setValue(initialData.value || '');
     }
-  }, [isOpen, initialData]);
+    prevOpenRef.current = isOpen;
+  }, [isOpen]);
 
   const handleSave = () => {
     if (mode === 'edit-field' && field) {

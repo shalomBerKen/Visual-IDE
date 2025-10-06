@@ -29,7 +29,7 @@ export const BlockRenderer: React.FC<Props> = ({ block, onUpdate, onAddChild, on
           block={block as FunctionBlockType}
           onUpdate={onUpdate}
           onAddChild={onAddChild}
-          onDelete={onDelete}
+          onDelete={onDelete ? () => onDelete(block.id) : undefined}
         />
       );
     case 'variable':

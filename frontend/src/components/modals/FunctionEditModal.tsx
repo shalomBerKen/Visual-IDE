@@ -25,15 +25,17 @@ export const FunctionEditModal: React.FC<FunctionEditModalProps> = ({
   const [name, setName] = useState(initialData.name || '');
   const [parameters, setParameters] = useState<string[]>(initialData.parameters || []);
   const [newParam, setNewParam] = useState('');
+  const prevOpenRef = React.useRef(false);
 
-  // Reset state when modal opens/closes or initialData changes
+  // Reset state only when modal transitions from closed to open
   React.useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevOpenRef.current) {
       setName(initialData.name || '');
       setParameters(initialData.parameters || []);
       setNewParam('');
     }
-  }, [isOpen, initialData]);
+    prevOpenRef.current = isOpen;
+  }, [isOpen]);
 
   const handleAddParameter = () => {
     if (newParam.trim() && !parameters.includes(newParam.trim())) {

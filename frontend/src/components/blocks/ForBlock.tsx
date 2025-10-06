@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import type { ForBlock as ForBlockType } from '../../types/blocks';
-import { ValueInput } from '../common/ValueInput';
 import { BlockContainer } from './common/BlockContainer';
 import { BlockHeader } from './common/BlockHeader';
-import { BlockField } from './common/BlockField';
 import { BlockBody } from './common/BlockBody';
 import { CollapsedSummary } from './common/CollapsedSummary';
+import { ForEditModal } from '../modals/ForEditModal';
 
 interface Props {
   block: ForBlockType;
@@ -23,6 +22,17 @@ export const ForBlock: React.FC<Props> = ({
   availableVariables = []
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editField, setEditField] = useState<'variable' | 'iterable' | undefined>();
+
+  const handleFieldClick = (field: 'variable' | 'iterable') => {
+    setEditField(field);
+    setModalOpen(true);
+  };
+
+  const handleSave = (data: { variable: string; iterable: string }) => {
+    onUpdate?.({ ...block, iterator: data.variable, iterable: data.iterable });
+  };
 
   return (
     <BlockContainer color="orange" minWidth="[400px]">
@@ -37,25 +47,37 @@ export const ForBlock: React.FC<Props> = ({
 
       {isExpanded && (
         <div className="space-y-3 pl-6">
-          <BlockField label="Variable:">
-            <input
-              type="text"
-              value={block.iterator}
-              onChange={(e) => onUpdate?.({ ...block, iterator: e.target.value })}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              placeholder="item"
-            />
-          </BlockField>
+          {/* Variable - Read-only with click to edit */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14">Variable</span>
+            <button
+              onClick={() => handleFieldClick('variable')}
+              className="flex-1 group text-left transition-all duration-200"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-orange-50 group-hover:bg-orange-100 transition-all duration-200">
+                <span className="text-orange-900 font-mono text-sm font-medium">
+                  {block.iterator || <span className="text-gray-400 italic">Click to set variable</span>}
+                </span>
+                <span className="text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
+              </span>
+            </button>
+          </div>
 
-          <BlockField label="In:">
-            <ValueInput
-              value={block.iterable}
-              onChange={(iterable) => onUpdate?.({ ...block, iterable })}
-              placeholder="range(10)"
-              availableVariables={availableVariables}
-              className="focus:ring-orange-500"
-            />
-          </BlockField>
+          {/* Iterable - Read-only with click to edit */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14">In</span>
+            <button
+              onClick={() => handleFieldClick('iterable')}
+              className="flex-1 group text-left transition-all duration-200"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-orange-50 group-hover:bg-orange-100 transition-all duration-200">
+                <span className="text-orange-900 font-mono text-sm font-medium">
+                  {block.iterable || <span className="text-gray-400 italic">Click to set iterable</span>}
+                </span>
+                <span className="text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
+              </span>
+            </button>
+          </div>
 
           <BlockBody
             title="Loop Body:"
@@ -83,6 +105,17 @@ export const ForBlock: React.FC<Props> = ({
       {!isExpanded && (
         <CollapsedSummary summary={`for ${block.iterator} in ${block.iterable}`} />
       )}
+
+      {/* Edit Modal - field-specific only */}
+      <ForEditModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSave}
+        initialData={{ variable: block.iterator, iterable: block.iterable }}
+        mode="edit-field"
+        field={editField}
+        availableVariables={availableVariables}
+      />
     </BlockContainer>
   );
 };

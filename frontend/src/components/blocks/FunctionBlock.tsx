@@ -3,9 +3,9 @@ import type { FunctionBlock as FunctionBlockType } from '../../types/blocks';
 import { getVariablesInFunction } from '../../utils/variableUtils';
 import { BlockContainer } from './common/BlockContainer';
 import { BlockHeader } from './common/BlockHeader';
-import { BlockField } from './common/BlockField';
 import { BlockBody } from './common/BlockBody';
 import { CollapsedSummary } from './common/CollapsedSummary';
+import { FunctionEditModal } from '../modals/FunctionEditModal';
 
 interface Props {
   block: FunctionBlockType;
@@ -21,9 +21,19 @@ export const FunctionBlock: React.FC<Props> = ({
   onDelete
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [newParam, setNewParam] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editField, setEditField] = useState<'name' | 'parameters' | undefined>();
 
   const availableVariables = useMemo(() => getVariablesInFunction(block), [block]);
+
+  const handleFieldClick = (field: 'name' | 'parameters') => {
+    setEditField(field);
+    setModalOpen(true);
+  };
+
+  const handleSave = (data: Partial<FunctionBlockType>) => {
+    onUpdate?.({ ...block, ...data });
+  };
 
   return (
     <BlockContainer color="blue" minWidth="[400px]">
@@ -38,68 +48,36 @@ export const FunctionBlock: React.FC<Props> = ({
 
       {isExpanded && (
         <div className="space-y-3 pl-6">
-          <BlockField label="Name:">
-            <input
-              type="text"
-              value={block.name}
-              onChange={(e) => onUpdate?.({ ...block, name: e.target.value })}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="function_name"
-            />
-          </BlockField>
+          {/* Name - Read-only with click to edit */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14">Name</span>
+            <button
+              onClick={() => handleFieldClick('name')}
+              className="flex-1 group text-left transition-all duration-200"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-blue-50 group-hover:bg-blue-100 transition-all duration-200">
+                <span className="text-blue-900 font-mono text-sm font-medium">
+                  {block.name || <span className="text-gray-400 italic">Click to set name</span>}
+                </span>
+                <span className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
+              </span>
+            </button>
+          </div>
 
-          {/* Parameters */}
-          <div className="flex items-start gap-2">
-            <label className="text-sm font-medium text-gray-700 w-24 pt-2">
-              Parameters:
-            </label>
-            <div className="flex-1">
-              <div className="flex flex-wrap gap-2">
-                {block.parameters.map((param, index) => (
-                  <div
-                    key={index}
-                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-2"
-                  >
-                    <span>{param}</span>
-                    <button
-                      onClick={() => {
-                        const newParams = block.parameters.filter((_, i) => i !== index);
-                        onUpdate?.({ ...block, parameters: newParams });
-                      }}
-                      className="text-blue-900 hover:text-red-600 font-bold"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={newParam}
-                    onChange={(e) => setNewParam(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newParam.trim()) {
-                        onUpdate?.({ ...block, parameters: [...block.parameters, newParam.trim()] });
-                        setNewParam('');
-                      }
-                    }}
-                    placeholder="param_name"
-                    className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={() => {
-                      if (newParam.trim()) {
-                        onUpdate?.({ ...block, parameters: [...block.parameters, newParam.trim()] });
-                        setNewParam('');
-                      }
-                    }}
-                    className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-            </div>
+          {/* Parameters - Read-only with click to edit */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14">Params</span>
+            <button
+              onClick={() => handleFieldClick('parameters')}
+              className="flex-1 group text-left transition-all duration-200"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-blue-50 group-hover:bg-blue-100 transition-all duration-200">
+                <span className="text-blue-900 font-mono text-sm font-medium">
+                  {block.parameters.length > 0 ? block.parameters.join(', ') : <span className="text-gray-400 italic">Click to add parameters</span>}
+                </span>
+                <span className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
+              </span>
+            </button>
           </div>
 
           <BlockBody
@@ -126,6 +104,16 @@ export const FunctionBlock: React.FC<Props> = ({
       {!isExpanded && (
         <CollapsedSummary summary={`${block.name}(${block.parameters.join(', ')})`} />
       )}
+
+      {/* Edit Modal - field-specific only */}
+      <FunctionEditModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSave}
+        initialData={block}
+        mode="edit-field"
+        field={editField}
+      />
     </BlockContainer>
   );
 };

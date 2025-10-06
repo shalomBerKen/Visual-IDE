@@ -16,6 +16,10 @@ import { ReturnBlock } from '../blocks/ReturnBlock';
 import { FunctionCallBlock } from '../blocks/FunctionCallBlock';
 import { VariableEditModal } from '../modals/VariableEditModal';
 import { FunctionEditModal } from '../modals/FunctionEditModal';
+import { IfEditModal } from '../modals/IfEditModal';
+import { ForEditModal } from '../modals/ForEditModal';
+import { ReturnEditModal } from '../modals/ReturnEditModal';
+import { FunctionCallEditModal } from '../modals/FunctionCallEditModal';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useBlockManager } from '../../hooks/useBlockManager';
 import { useChildManager } from '../../hooks/useChildManager';
@@ -24,7 +28,8 @@ export const Canvas: React.FC = () => {
   const [showCode, setShowCode] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [importCode, setImportCode] = useState('');
-  const [createModalType, setCreateModalType] = useState<'variable' | 'function' | null>(null);
+  const [createModalType, setCreateModalType] = useState<'variable' | 'function' | 'if' | 'for' | 'return' | 'functionCall' | null>(null);
+  const [pendingParentId, setPendingParentId] = useState<string | null>(null);
   const { languageService, languageName } = useLanguage();
 
   // Use custom hooks for block management
@@ -43,16 +48,24 @@ export const Canvas: React.FC = () => {
   // Wrapper functions for adding specific block types
   const addFunctionBlock = () => setCreateModalType('function');
   const addVariableBlock = () => setCreateModalType('variable');
-  const addIfBlock = () => addBlock('if');
-  const addForBlock = () => addBlock('for');
-  const addReturnBlock = () => addBlock('return');
-  const addFunctionCallBlock = () => addBlock('functionCall');
+  const addIfBlock = () => setCreateModalType('if');
+  const addForBlock = () => setCreateModalType('for');
+  const addReturnBlock = () => setCreateModalType('return');
+  const addFunctionCallBlock = () => setCreateModalType('functionCall');
 
   // Handle creating block from modal
   const handleCreateVariable = (data: Partial<VariableBlockType>) => {
-    const block = createBlock('variable') as VariableBlockType;
-    const newBlock = { ...block, ...data };
-    setBlocks([...blocks, newBlock]);
+    if (pendingParentId) {
+      // Add as child with data
+      const updatedBlocks = addChild(blocks, pendingParentId, 'variable', data);
+      setBlocks(updatedBlocks);
+      setPendingParentId(null);
+    } else {
+      // Add as top-level block
+      const block = createBlock('variable') as VariableBlockType;
+      const newBlock = { ...block, ...data };
+      setBlocks([...blocks, newBlock]);
+    }
     setCreateModalType(null);
   };
 
@@ -61,12 +74,67 @@ export const Canvas: React.FC = () => {
     const newBlock = { ...block, ...data };
     setBlocks([...blocks, newBlock]);
     setCreateModalType(null);
+    setPendingParentId(null);
   };
 
-  // Wrapper for adding child blocks - uses the hook
+  const handleCreateIf = (data: { condition: string }) => {
+    if (pendingParentId) {
+      const updatedBlocks = addChild(blocks, pendingParentId, 'if', data);
+      setBlocks(updatedBlocks);
+      setPendingParentId(null);
+    } else {
+      const block = createBlock('if') as IfBlockType;
+      const newBlock = { ...block, ...data };
+      setBlocks([...blocks, newBlock]);
+    }
+    setCreateModalType(null);
+  };
+
+  const handleCreateFor = (data: { variable: string; iterable: string }) => {
+    const forData = { iterator: data.variable, iterable: data.iterable };
+    if (pendingParentId) {
+      const updatedBlocks = addChild(blocks, pendingParentId, 'for', forData);
+      setBlocks(updatedBlocks);
+      setPendingParentId(null);
+    } else {
+      const block = createBlock('for') as ForBlockType;
+      const newBlock = { ...block, ...forData };
+      setBlocks([...blocks, newBlock]);
+    }
+    setCreateModalType(null);
+  };
+
+  const handleCreateReturn = (data: { value: string }) => {
+    if (pendingParentId) {
+      const updatedBlocks = addChild(blocks, pendingParentId, 'return', data);
+      setBlocks(updatedBlocks);
+      setPendingParentId(null);
+    } else {
+      const block = createBlock('return') as ReturnBlockType;
+      const newBlock = { ...block, ...data };
+      setBlocks([...blocks, newBlock]);
+    }
+    setCreateModalType(null);
+  };
+
+  const handleCreateFunctionCall = (data: { functionName: string; args: string[] }) => {
+    const callData = { functionName: data.functionName, arguments: data.args };
+    if (pendingParentId) {
+      const updatedBlocks = addChild(blocks, pendingParentId, 'functionCall', callData);
+      setBlocks(updatedBlocks);
+      setPendingParentId(null);
+    } else {
+      const block = createBlock('functionCall') as FunctionCallBlockType;
+      const newBlock = { ...block, ...callData };
+      setBlocks([...blocks, newBlock]);
+    }
+    setCreateModalType(null);
+  };
+
+  // Wrapper for adding child blocks - opens modal first
   const addChildBlock = (parentId: string, blockType: string) => {
-    const updatedBlocks = addChild(blocks, parentId, blockType);
-    setBlocks(updatedBlocks);
+    setPendingParentId(parentId);
+    setCreateModalType(blockType as any);
   };
 
   const handleImportCode = () => {
@@ -307,6 +375,34 @@ export const Canvas: React.FC = () => {
         isOpen={createModalType === 'function'}
         onClose={() => setCreateModalType(null)}
         onSave={handleCreateFunction}
+        mode="create"
+      />
+
+      <IfEditModal
+        isOpen={createModalType === 'if'}
+        onClose={() => setCreateModalType(null)}
+        onSave={handleCreateIf}
+        mode="create"
+      />
+
+      <ForEditModal
+        isOpen={createModalType === 'for'}
+        onClose={() => setCreateModalType(null)}
+        onSave={handleCreateFor}
+        mode="create"
+      />
+
+      <ReturnEditModal
+        isOpen={createModalType === 'return'}
+        onClose={() => setCreateModalType(null)}
+        onSave={handleCreateReturn}
+        mode="create"
+      />
+
+      <FunctionCallEditModal
+        isOpen={createModalType === 'functionCall'}
+        onClose={() => setCreateModalType(null)}
+        onSave={handleCreateFunctionCall}
         mode="create"
       />
     </div>

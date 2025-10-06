@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import type { IfBlock as IfBlockType } from '../../types/blocks';
 import { BlockRenderer } from './BlockRenderer';
-import { ValueInput } from '../common/ValueInput';
 import { IfBranchBody } from './common/IfBranchBody';
 import { FalseHandlingButton } from './common/FalseHandlingButton';
+import { IfEditModal } from '../modals/IfEditModal';
 
 interface Props {
   block: IfBlockType;
@@ -20,7 +20,12 @@ export const IfBlock: React.FC<Props> = ({
   onDelete,
   availableVariables = []
 }) => {
+  const [modalOpen, setModalOpen] = useState(false);
   const hasFalseHandling = block.elseType !== 'none';
+
+  const handleSave = (data: { condition: string }) => {
+    onUpdate?.({ ...block, ...data });
+  };
 
   const addElseBlock = () => {
     onUpdate?.({ ...block, elseType: 'else', elseBody: [] });
@@ -43,7 +48,7 @@ export const IfBlock: React.FC<Props> = ({
       {/* Header with condition */}
       <div className="p-3 bg-purple-50 border-b-2 border-purple-500">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold text-purple-700">⬥ Condition</span>
+          <span className="text-sm font-semibold text-purple-700">⬥ If Statement</span>
           {onDelete && (
             <button
               onClick={() => onDelete(block.id)}
@@ -54,13 +59,20 @@ export const IfBlock: React.FC<Props> = ({
             </button>
           )}
         </div>
-        <ValueInput
-          value={block.condition}
-          onChange={(condition) => onUpdate?.({ ...block, condition })}
-          placeholder="condition (e.g., x > 0)"
-          availableVariables={availableVariables}
-          className="focus:ring-purple-500 text-sm"
-        />
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Condition</span>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex-1 group text-left transition-all duration-200"
+          >
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-purple-50 group-hover:bg-purple-100 transition-all duration-200">
+              <span className="text-purple-900 font-mono text-sm font-medium">
+                {block.condition || <span className="text-gray-400 italic">Click to set condition</span>}
+              </span>
+              <span className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Main horizontal split - using table layout for true dynamic sizing */}
@@ -152,6 +164,17 @@ export const IfBlock: React.FC<Props> = ({
         </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      <IfEditModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSave}
+        initialData={block}
+        mode="edit-field"
+        field="condition"
+        availableVariables={availableVariables}
+      />
     </div>
   );
 };

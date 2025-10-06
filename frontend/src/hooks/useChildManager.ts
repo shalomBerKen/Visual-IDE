@@ -93,10 +93,16 @@ export const useChildManager = (createBlock: (type: string) => Block | null) => 
   const addChild = useCallback((
     blocks: Block[],
     parentId: string,
-    blockType: string
+    blockType: string,
+    blockData?: Partial<Block>
   ): Block[] => {
-    const newBlock = createBlock(blockType);
+    let newBlock = createBlock(blockType);
     if (!newBlock) return blocks;
+
+    // Merge with provided data if any
+    if (blockData) {
+      newBlock = { ...newBlock, ...blockData };
+    }
 
     return blocks.map(block => addChildToBlock(block, parentId, newBlock));
   }, [createBlock, addChildToBlock]);
