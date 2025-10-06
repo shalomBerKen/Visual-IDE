@@ -5,6 +5,7 @@ import { BlockContainer } from './common/BlockContainer';
 import { BlockHeader } from './common/BlockHeader';
 import { BlockBody } from './common/BlockBody';
 import { CollapsedSummary } from './common/CollapsedSummary';
+import { EditableField } from '../common/EditableField';
 import { FunctionEditModal } from '../modals/FunctionEditModal';
 
 interface Props {
@@ -48,37 +49,21 @@ export const FunctionBlock: React.FC<Props> = ({
 
       {isExpanded && (
         <div className="space-y-3 pl-6">
-          {/* Name - Read-only with click to edit */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14">Name</span>
-            <button
-              onClick={() => handleFieldClick('name')}
-              className="flex-1 group text-left transition-all duration-200"
-            >
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-blue-50 group-hover:bg-blue-100 transition-all duration-200">
-                <span className="text-blue-900 font-mono text-sm font-medium">
-                  {block.name || <span className="text-gray-400 italic">Click to set name</span>}
-                </span>
-                <span className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
-              </span>
-            </button>
-          </div>
+          <EditableField
+            label="Name"
+            value={block.name}
+            placeholder="Click to set name"
+            color="blue"
+            onClick={() => handleFieldClick('name')}
+          />
 
-          {/* Parameters - Read-only with click to edit */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14">Params</span>
-            <button
-              onClick={() => handleFieldClick('parameters')}
-              className="flex-1 group text-left transition-all duration-200"
-            >
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-blue-50 group-hover:bg-blue-100 transition-all duration-200">
-                <span className="text-blue-900 font-mono text-sm font-medium">
-                  {block.parameters.length > 0 ? block.parameters.join(', ') : <span className="text-gray-400 italic">Click to add parameters</span>}
-                </span>
-                <span className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
-              </span>
-            </button>
-          </div>
+          <EditableField
+            label="Params"
+            value={block.parameters}
+            placeholder="Click to add parameters"
+            color="blue"
+            onClick={() => handleFieldClick('parameters')}
+          />
 
           <BlockBody
             title="Function Body:"

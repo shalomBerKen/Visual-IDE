@@ -44,6 +44,12 @@ export const AddStatementMenu: React.FC<AddStatementMenuProps> = ({
             Variable
           </button>
           <button
+            onClick={() => handleAdd('function')}
+            className="w-full px-4 py-2 text-left hover:bg-blue-50 text-blue-700 border-b border-gray-200"
+          >
+            Function
+          </button>
+          <button
             onClick={() => handleAdd('if')}
             className="w-full px-4 py-2 text-left hover:bg-purple-50 text-purple-700 border-b border-gray-200"
           >

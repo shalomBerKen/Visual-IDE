@@ -39,7 +39,7 @@ export const BlockBody: React.FC<BlockBodyProps> = ({
           {title}
         </div>
       )}
-      <div className={`ml-4 space-y-2 ${backgroundColor} rounded p-3 min-w-fit`}>
+      <div className={`ml-4 space-y-2 ${backgroundColor} rounded p-3 min-w-[300px]`}>
         {children.length > 0 ? (
           children.map((child) => (
             <BlockRenderer

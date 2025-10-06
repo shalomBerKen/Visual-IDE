@@ -4,6 +4,7 @@ import { BlockContainer } from './common/BlockContainer';
 import { BlockHeader } from './common/BlockHeader';
 import { BlockBody } from './common/BlockBody';
 import { CollapsedSummary } from './common/CollapsedSummary';
+import { EditableField } from '../common/EditableField';
 import { ForEditModal } from '../modals/ForEditModal';
 
 interface Props {
@@ -47,37 +48,21 @@ export const ForBlock: React.FC<Props> = ({
 
       {isExpanded && (
         <div className="space-y-3 pl-6">
-          {/* Variable - Read-only with click to edit */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14">Variable</span>
-            <button
-              onClick={() => handleFieldClick('variable')}
-              className="flex-1 group text-left transition-all duration-200"
-            >
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-orange-50 group-hover:bg-orange-100 transition-all duration-200">
-                <span className="text-orange-900 font-mono text-sm font-medium">
-                  {block.iterator || <span className="text-gray-400 italic">Click to set variable</span>}
-                </span>
-                <span className="text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
-              </span>
-            </button>
-          </div>
+          <EditableField
+            label="Variable"
+            value={block.iterator}
+            placeholder="Click to set variable"
+            color="orange"
+            onClick={() => handleFieldClick('variable')}
+          />
 
-          {/* Iterable - Read-only with click to edit */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14">In</span>
-            <button
-              onClick={() => handleFieldClick('iterable')}
-              className="flex-1 group text-left transition-all duration-200"
-            >
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-orange-50 group-hover:bg-orange-100 transition-all duration-200">
-                <span className="text-orange-900 font-mono text-sm font-medium">
-                  {block.iterable || <span className="text-gray-400 italic">Click to set iterable</span>}
-                </span>
-                <span className="text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
-              </span>
-            </button>
-          </div>
+          <EditableField
+            label="In"
+            value={block.iterable}
+            placeholder="Click to set iterable"
+            color="orange"
+            onClick={() => handleFieldClick('iterable')}
+          />
 
           <BlockBody
             title="Loop Body:"

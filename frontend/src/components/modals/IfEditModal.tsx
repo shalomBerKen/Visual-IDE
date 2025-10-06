@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
+import { ModalTextInput } from '../common/ModalTextInput';
+import { AvailableVariablesList } from '../common/AvailableVariablesList';
+import { ModalActions } from '../common/ModalActions';
 
 interface IfEditModalProps {
   isOpen: boolean;
@@ -50,64 +53,31 @@ export const IfEditModal: React.FC<IfEditModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={getTitle()}>
       <div className="space-y-4">
-        {/* Condition input */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Condition
-          </label>
-          <input
-            type="text"
-            value={condition}
-            onChange={(e) => setCondition(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="e.g., x > 5"
-            autoFocus
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            Enter a boolean expression (e.g., x &gt; 5, name == "test")
-          </p>
-        </div>
+        <ModalTextInput
+          label="Condition"
+          value={condition}
+          onChange={setCondition}
+          placeholder="e.g., x > 5"
+          hint='Enter a boolean expression (e.g., x > 5, name == "test")'
+          color="purple"
+          autoFocus
+          required
+        />
 
-        {/* Available variables */}
         {availableVariables.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Available Variables
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {availableVariables.map((variable) => (
-                <button
-                  key={variable}
-                  onClick={() => setCondition(condition + variable)}
-                  className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors"
-                >
-                  {variable}
-                </button>
-              ))}
-            </div>
-          </div>
+          <AvailableVariablesList
+            variables={availableVariables}
+            onVariableClick={(variable) => setCondition(condition + variable)}
+          />
         )}
 
-        {/* Action buttons */}
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!canSave}
-            className={`px-4 py-2 rounded-md transition-colors ${
-              canSave
-                ? 'bg-purple-500 hover:bg-purple-600 text-white'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            {mode === 'create' ? 'Create' : 'Save'}
-          </button>
-        </div>
+        <ModalActions
+          onCancel={onClose}
+          onSave={handleSave}
+          canSave={!!canSave}
+          saveButtonText={mode === 'create' ? 'Create' : 'Save'}
+          color="purple"
+        />
       </div>
     </Modal>
   );

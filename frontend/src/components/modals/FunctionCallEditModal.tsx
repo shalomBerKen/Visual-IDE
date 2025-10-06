@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
+import { ModalTextInput } from '../common/ModalTextInput';
+import { TagList } from '../common/TagList';
+import { AvailableVariablesList } from '../common/AvailableVariablesList';
+import { ModalActions } from '../common/ModalActions';
 
 interface FunctionCallEditModalProps {
   isOpen: boolean;
@@ -27,7 +31,6 @@ export const FunctionCallEditModal: React.FC<FunctionCallEditModalProps> = ({
 }) => {
   const [functionName, setFunctionName] = useState(initialData.functionName || '');
   const [args, setArgs] = useState<string[]>(initialData.args || []);
-  const [newArg, setNewArg] = useState('');
   const prevOpenRef = React.useRef(false);
 
   // Reset state only when modal transitions from closed to open
@@ -35,15 +38,13 @@ export const FunctionCallEditModal: React.FC<FunctionCallEditModalProps> = ({
     if (isOpen && !prevOpenRef.current) {
       setFunctionName(initialData.functionName || '');
       setArgs(initialData.args || []);
-      setNewArg('');
     }
     prevOpenRef.current = isOpen;
   }, [isOpen]);
 
-  const handleAddArg = () => {
-    if (newArg.trim()) {
-      setArgs([...args, newArg.trim()]);
-      setNewArg('');
+  const handleAddArg = (arg: string) => {
+    if (arg.trim()) {
+      setArgs([...args, arg.trim()]);
     }
   };
 
@@ -81,122 +82,56 @@ export const FunctionCallEditModal: React.FC<FunctionCallEditModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={getTitle()}>
       <div className="space-y-4">
-        {/* Function Name */}
         {showFunctionNameField && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Function Name
-            </label>
-            <input
-              type="text"
+          <div className="space-y-2">
+            <ModalTextInput
+              label="Function Name"
               value={functionName}
-              onChange={(e) => setFunctionName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              onChange={setFunctionName}
               placeholder="e.g., print, my_function"
+              color="cyan"
               autoFocus
+              required
             />
             {availableFunctions.length > 0 && (
-              <div className="mt-2">
-                <p className="text-sm text-gray-600 mb-1">Available functions:</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableFunctions.map((func) => (
-                    <button
-                      key={func}
-                      onClick={() => setFunctionName(func)}
-                      className="px-2 py-1 bg-cyan-100 hover:bg-cyan-200 text-cyan-700 rounded text-sm transition-colors"
-                    >
-                      {func}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <AvailableVariablesList
+                variables={availableFunctions}
+                onVariableClick={setFunctionName}
+                title="Available Functions"
+              />
             )}
           </div>
         )}
 
-        {/* Arguments */}
         {showArgsField && (
-          <div>
+          <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Arguments
             </label>
-            <div className="space-y-2">
-              {args.map((arg, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <span className="flex-1 px-3 py-1 bg-cyan-100 text-cyan-700 rounded text-sm">
-                    {arg}
-                  </span>
-                  <button
-                    onClick={() => handleRemoveArg(index)}
-                    className="text-red-500 hover:text-red-700 font-bold"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={newArg}
-                  onChange={(e) => setNewArg(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddArg();
-                    }
-                  }}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  placeholder="Add argument..."
-                />
-                <button
-                  onClick={handleAddArg}
-                  className="px-4 py-2 bg-cyan-500 text-white rounded-md hover:bg-cyan-600 transition-colors"
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-
-            {/* Available variables */}
+            <TagList
+              items={args}
+              color="cyan"
+              onRemove={handleRemoveArg}
+              onAdd={handleAddArg}
+              addPlaceholder="Add argument..."
+              addButtonText="Add"
+            />
             {availableVariables.length > 0 && (
-              <div className="mt-2">
-                <p className="text-sm text-gray-600 mb-1">Available variables:</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableVariables.map((variable) => (
-                    <button
-                      key={variable}
-                      onClick={() => setNewArg(newArg + variable)}
-                      className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors"
-                    >
-                      {variable}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <AvailableVariablesList
+                variables={availableVariables}
+                onVariableClick={(variable) => handleAddArg(variable)}
+              />
             )}
           </div>
         )}
 
-        {/* Action buttons */}
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!canSave}
-            className={`px-4 py-2 rounded-md transition-colors ${
-              canSave
-                ? 'bg-cyan-500 hover:bg-cyan-600 text-white'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            {mode === 'create' ? 'Create' : 'Save'}
-          </button>
-        </div>
+        <ModalActions
+          onCancel={onClose}
+          onSave={handleSave}
+          canSave={!!canSave}
+          saveButtonText={mode === 'create' ? 'Create' : 'Save'}
+          color="cyan"
+        />
       </div>
     </Modal>
   );

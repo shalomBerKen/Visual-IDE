@@ -70,11 +70,18 @@ export const Canvas: React.FC = () => {
   };
 
   const handleCreateFunction = (data: Partial<FunctionBlockType>) => {
-    const block = createBlock('function') as FunctionBlockType;
-    const newBlock = { ...block, ...data };
-    setBlocks([...blocks, newBlock]);
+    if (pendingParentId) {
+      // Add as child with data
+      const updatedBlocks = addChild(blocks, pendingParentId, 'function', data);
+      setBlocks(updatedBlocks);
+      setPendingParentId(null);
+    } else {
+      // Add as top-level block
+      const block = createBlock('function') as FunctionBlockType;
+      const newBlock = { ...block, ...data };
+      setBlocks([...blocks, newBlock]);
+    }
     setCreateModalType(null);
-    setPendingParentId(null);
   };
 
   const handleCreateIf = (data: { condition: string }) => {

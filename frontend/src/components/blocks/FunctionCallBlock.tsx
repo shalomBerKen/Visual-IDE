@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { FunctionCallBlock as FunctionCallBlockType } from '../../types/blocks';
 import { BlockContainer } from './common/BlockContainer';
 import { BlockHeader } from './common/BlockHeader';
+import { EditableField } from '../common/EditableField';
 import { FunctionCallEditModal } from '../modals/FunctionCallEditModal';
 
 interface FunctionCallBlockProps {
@@ -42,37 +43,21 @@ export const FunctionCallBlock: React.FC<FunctionCallBlockProps> = ({
         />
 
         <div className="space-y-3 pl-6">
-          {/* Function Name - Read-only with click to edit */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14">Function</span>
-            <button
-              onClick={() => handleFieldClick('functionName')}
-              className="flex-1 group text-left transition-all duration-200"
-            >
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-cyan-50 group-hover:bg-cyan-100 transition-all duration-200">
-                <span className="text-cyan-900 font-mono text-sm font-medium">
-                  {block.functionName || <span className="text-gray-400 italic">Click to set function</span>}
-                </span>
-                <span className="text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
-              </span>
-            </button>
-          </div>
+          <EditableField
+            label="Function"
+            value={block.functionName}
+            placeholder="Click to set function"
+            color="cyan"
+            onClick={() => handleFieldClick('functionName')}
+          />
 
-          {/* Arguments - Read-only with click to edit */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14">Args</span>
-            <button
-              onClick={() => handleFieldClick('args')}
-              className="flex-1 group text-left transition-all duration-200"
-            >
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-cyan-50 group-hover:bg-cyan-100 transition-all duration-200">
-                <span className="text-cyan-900 font-mono text-sm font-medium">
-                  {block.arguments.length > 0 ? block.arguments.join(', ') : <span className="text-gray-400 italic">Click to add arguments</span>}
-                </span>
-                <span className="text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs">✏️</span>
-              </span>
-            </button>
-          </div>
+          <EditableField
+            label="Args"
+            value={block.arguments}
+            placeholder="Click to add arguments"
+            color="cyan"
+            onClick={() => handleFieldClick('args')}
+          />
         </div>
       </BlockContainer>
 
