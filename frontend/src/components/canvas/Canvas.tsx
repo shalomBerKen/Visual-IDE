@@ -23,6 +23,7 @@ import { FunctionCallEditModal } from '../modals/FunctionCallEditModal';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useBlockManager } from '../../hooks/useBlockManager';
 import { useChildManager } from '../../hooks/useChildManager';
+import { getAvailableVariables } from '../../utils/variableUtils';
 
 export const Canvas: React.FC = () => {
   const [showCode, setShowCode] = useState(false);
@@ -143,6 +144,44 @@ export const Canvas: React.FC = () => {
     setPendingParentId(parentId);
     setCreateModalType(blockType as any);
   };
+
+  // Calculate available variables based on current context
+  const getModalAvailableVariables = (): string[] => {
+    if (pendingParentId) {
+      // If creating inside a parent, find that parent and get its variables
+      const findParent = (blockList: Block[], parentId: string): FunctionBlockType | null => {
+        for (const block of blockList) {
+          if (block.id === parentId && block.type === 'function') {
+            return block as FunctionBlockType;
+          }
+          if ('children' in block && block.children) {
+            const found = findParent(block.children as Block[], parentId);
+            if (found) return found;
+          }
+          if (block.type === 'if') {
+            const ifBlock = block as IfBlockType;
+            if (ifBlock.ifBody) {
+              const found = findParent(ifBlock.ifBody, parentId);
+              if (found) return found;
+            }
+            if (ifBlock.elseBody) {
+              const found = findParent(ifBlock.elseBody, parentId);
+              if (found) return found;
+            }
+          }
+        }
+        return null;
+      };
+
+      const parentFunction = findParent(blocks, pendingParentId);
+      return getAvailableVariables(blocks, undefined, parentFunction || undefined);
+    } else {
+      // Creating at top level - get all variables defined so far
+      return getAvailableVariables(blocks);
+    }
+  };
+
+  const availableVars = getModalAvailableVariables();
 
   const handleImportCode = () => {
     try {
@@ -273,7 +312,10 @@ export const Canvas: React.FC = () => {
               </div>
             </div>
           ) : (
-            blocks.map((block) => {
+            blocks.map((block, index) => {
+              // Calculate available variables for this block (all variables before it)
+              const blockAvailableVars = getAvailableVariables(blocks.slice(0, index));
+
               switch (block.type) {
                 case 'function':
                   return (
@@ -292,6 +334,7 @@ export const Canvas: React.FC = () => {
                       block={block as VariableBlockType}
                       onUpdate={updateBlock}
                       onDelete={() => deleteBlock(block.id)}
+                      availableVariables={blockAvailableVars}
                     />
                   );
                 case 'if':
@@ -302,6 +345,7 @@ export const Canvas: React.FC = () => {
                       onUpdate={updateBlock}
                       onAddChild={addChildBlock}
                       onDelete={() => deleteBlock(block.id)}
+                      availableVariables={blockAvailableVars}
                     />
                   );
                 case 'for':
@@ -312,6 +356,7 @@ export const Canvas: React.FC = () => {
                       onUpdate={updateBlock}
                       onAddChild={addChildBlock}
                       onDelete={() => deleteBlock(block.id)}
+                      availableVariables={blockAvailableVars}
                     />
                   );
                 case 'return':
@@ -321,6 +366,7 @@ export const Canvas: React.FC = () => {
                       block={block as ReturnBlockType}
                       onUpdate={updateBlock}
                       onDelete={() => deleteBlock(block.id)}
+                      availableVariables={blockAvailableVars}
                     />
                   );
                 case 'functionCall':
@@ -330,6 +376,7 @@ export const Canvas: React.FC = () => {
                       block={block as FunctionCallBlockType}
                       onUpdate={updateBlock}
                       onDelete={() => deleteBlock(block.id)}
+                      availableVariables={blockAvailableVars}
                     />
                   );
                 default:
@@ -375,6 +422,7 @@ export const Canvas: React.FC = () => {
         isOpen={createModalType === 'variable'}
         onClose={() => setCreateModalType(null)}
         onSave={handleCreateVariable}
+        availableVariables={availableVars}
         mode="create"
       />
 
@@ -389,6 +437,7 @@ export const Canvas: React.FC = () => {
         isOpen={createModalType === 'if'}
         onClose={() => setCreateModalType(null)}
         onSave={handleCreateIf}
+        availableVariables={availableVars}
         mode="create"
       />
 
@@ -396,6 +445,7 @@ export const Canvas: React.FC = () => {
         isOpen={createModalType === 'for'}
         onClose={() => setCreateModalType(null)}
         onSave={handleCreateFor}
+        availableVariables={availableVars}
         mode="create"
       />
 
@@ -403,6 +453,7 @@ export const Canvas: React.FC = () => {
         isOpen={createModalType === 'return'}
         onClose={() => setCreateModalType(null)}
         onSave={handleCreateReturn}
+        availableVariables={availableVars}
         mode="create"
       />
 
@@ -410,6 +461,7 @@ export const Canvas: React.FC = () => {
         isOpen={createModalType === 'functionCall'}
         onClose={() => setCreateModalType(null)}
         onSave={handleCreateFunctionCall}
+        availableVariables={availableVars}
         mode="create"
       />
     </div>

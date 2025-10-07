@@ -86,24 +86,26 @@ export const VariableEditModal: React.FC<VariableEditModalProps> = ({
 
         {/* Variable Value */}
         {(!field || field === 'value') && (
-          <ModalTextInput
-            label="Value"
-            value={value}
-            onChange={setValue}
-            placeholder="e.g., 42, 'hello', True"
-            hint="Numbers, strings (in quotes), booleans (True/False), or expressions"
-            color="green"
-            autoFocus={field === 'value'}
-            required
-          />
-        )}
+          <>
+            <ModalTextInput
+              label="Value"
+              value={value}
+              onChange={setValue}
+              placeholder="e.g., 42, 'hello', True"
+              hint="Numbers, strings (in quotes), booleans (True/False), or expressions"
+              color="green"
+              autoFocus={field === 'value'}
+              required
+            />
 
-        {/* Available Variables (only in full edit mode) */}
-        {!field && availableVariables.length > 0 && (
-          <AvailableVariablesList
-            variables={availableVariables}
-            onVariableClick={(variable) => setValue(value + (value ? ' + ' : '') + variable)}
-          />
+            {/* Available Variables - show when editing value */}
+            {availableVariables.length > 0 && (
+              <AvailableVariablesList
+                variables={availableVariables}
+                onVariableClick={(variable) => setValue(value + (value ? ' ' : '') + variable)}
+              />
+            )}
+          </>
         )}
 
         {/* Actions */}
