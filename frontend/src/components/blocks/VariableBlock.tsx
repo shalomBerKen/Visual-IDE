@@ -4,6 +4,9 @@ import { BlockContainer } from './common/BlockContainer';
 import { BlockHeader } from './common/BlockHeader';
 import { EditableField } from '../common/EditableField';
 import { VariableEditModal } from '../modals/VariableEditModal';
+import { ComplexValueDisplay } from '../valueBuilder/ComplexValueDisplay';
+import { migrateValue } from '../../utils/valueUtils';
+import type { ComplexValue } from '../../types/values';
 
 interface Props {
   block: VariableBlockType;
@@ -21,13 +24,17 @@ export const VariableBlock: React.FC<Props> = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [editField, setEditField] = useState<'name' | 'value' | undefined>();
 
-  const handleFieldClick = (field: 'name' | 'value') => {
+  const handleFieldClick = (field: 'name') => {
     setEditField(field);
     setModalOpen(true);
   };
 
   const handleSave = (data: Partial<VariableBlockType>) => {
     onUpdate?.({ ...block, ...data });
+  };
+
+  const handleValueChange = (newValue: ComplexValue) => {
+    onUpdate?.({ ...block, value: newValue });
   };
 
   return (
@@ -49,26 +56,33 @@ export const VariableBlock: React.FC<Props> = ({
             onClick={() => handleFieldClick('name')}
           />
 
-          <EditableField
-            label="Value"
-            value={block.value}
-            placeholder="Click to set value"
-            color="green"
-            onClick={() => handleFieldClick('value')}
-          />
+          {/* Value - always show ComplexValueDisplay */}
+          <div className="flex items-start gap-3">
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-14 mt-2">
+              Value
+            </span>
+            <div className="flex-1">
+              <ComplexValueDisplay
+                value={migrateValue(block.value)}
+                onChange={handleValueChange}
+              />
+            </div>
+          </div>
         </div>
       </BlockContainer>
 
-      {/* Edit Modal - field-specific only */}
-      <VariableEditModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSave={handleSave}
-        initialData={block}
-        availableVariables={availableVariables}
-        mode="edit-field"
-        field={editField}
-      />
+      {/* Edit Modal - for name only */}
+      {editField === 'name' && (
+        <VariableEditModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onSave={handleSave}
+          initialData={block}
+          availableVariables={availableVariables}
+          mode="edit-field"
+          field={editField}
+        />
+      )}
     </>
   );
 };

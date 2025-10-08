@@ -1,4 +1,5 @@
 import type { Block, FunctionBlock, VariableBlock, IfBlock, ForBlock, ReturnBlock, FunctionCallBlock } from '../../../types/blocks';
+import { compileComplexValue, migrateValue } from '../../../utils/valueUtils';
 
 export class PythonCompiler {
   compile(blocks: Block[]): string {
@@ -44,7 +45,13 @@ export class PythonCompiler {
 
   private compileVariable(block: VariableBlock, indent: number): string {
     const indentStr = '    '.repeat(indent);
-    return `${indentStr}${block.name} = ${block.value}`;
+
+    // Support both old string format and new ComplexValue format
+    const compiledValue = typeof block.value === 'string'
+      ? block.value
+      : compileComplexValue(migrateValue(block.value));
+
+    return `${indentStr}${block.name} = ${compiledValue}`;
   }
 
   private compileIf(block: IfBlock, indent: number): string {

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { ModalTextInput } from '../common/ModalTextInput';
-import { AvailableVariablesList } from '../common/AvailableVariablesList';
 import { ModalActions } from '../common/ModalActions';
 import type { VariableBlock } from '../../types/blocks';
+import type { ComplexValue } from '../../types/values';
+import { ValueTreeEditor } from '../valueBuilder';
+import { migrateValue } from '../../utils/valueUtils';
+import { createSimpleValue } from '../../types/values';
 
 interface VariableEditModalProps {
   isOpen: boolean;
@@ -17,6 +20,7 @@ interface VariableEditModalProps {
 
 /**
  * Modal for creating/editing Variable blocks
+ * Now supports complex values (arrays and objects)
  */
 export const VariableEditModal: React.FC<VariableEditModalProps> = ({
   isOpen,
@@ -28,17 +32,26 @@ export const VariableEditModal: React.FC<VariableEditModalProps> = ({
   field
 }) => {
   const [name, setName] = useState(initialData.name || '');
-  const [value, setValue] = useState(initialData.value || '');
+
+  // Migrate old string values to ComplexValue format
+  const initialComplexValue = initialData.value
+    ? migrateValue(initialData.value)
+    : createSimpleValue('');
+
+  const [value, setValue] = useState<ComplexValue>(initialComplexValue);
   const prevOpenRef = React.useRef(false);
 
   // Reset state only when modal transitions from closed to open
   React.useEffect(() => {
     if (isOpen && !prevOpenRef.current) {
       setName(initialData.name || '');
-      setValue(initialData.value || '');
+      const newValue = initialData.value
+        ? migrateValue(initialData.value)
+        : createSimpleValue('');
+      setValue(newValue);
     }
     prevOpenRef.current = isOpen;
-  }, [isOpen]);
+  }, [isOpen, initialData]);
 
   const handleSave = () => {
     if (mode === 'edit-field' && field) {
@@ -67,8 +80,11 @@ export const VariableEditModal: React.FC<VariableEditModalProps> = ({
     return 'Edit Variable';
   };
 
+  // For creation mode, use simple inputs
+  const isCreateMode = mode === 'create';
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={getTitle()} size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title={getTitle()} size={isCreateMode ? 'md' : 'lg'}>
       <div className="space-y-4">
         {/* Variable Name */}
         {(!field || field === 'name') && (
@@ -86,26 +102,22 @@ export const VariableEditModal: React.FC<VariableEditModalProps> = ({
 
         {/* Variable Value */}
         {(!field || field === 'value') && (
-          <>
-            <ModalTextInput
-              label="Value"
-              value={value}
-              onChange={setValue}
-              placeholder="e.g., 42, 'hello', True"
-              hint="Numbers, strings (in quotes), booleans (True/False), or expressions"
-              color="green"
-              autoFocus={field === 'value'}
-              required
-            />
-
-            {/* Available Variables - show when editing value */}
-            {availableVariables.length > 0 && (
-              <AvailableVariablesList
-                variables={availableVariables}
-                onVariableClick={(variable) => setValue(value + (value ? ' ' : '') + variable)}
+          isCreateMode ? (
+            // Simple type selector for creation
+            <SimpleValueTypeSelector value={value} onChange={setValue} />
+          ) : (
+            // Full tree editor for editing
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Value
+              </label>
+              <ValueTreeEditor
+                value={value}
+                onChange={setValue}
+                availableVariables={availableVariables}
               />
-            )}
-          </>
+            </div>
+          )
         )}
 
         {/* Actions */}
@@ -118,5 +130,108 @@ export const VariableEditModal: React.FC<VariableEditModalProps> = ({
         />
       </div>
     </Modal>
+  );
+};
+
+// Simple type selector for variable creation
+const SimpleValueTypeSelector: React.FC<{
+  value: ComplexValue;
+  onChange: (value: ComplexValue) => void;
+}> = ({ value, onChange }) => {
+  const [selectedType, setSelectedType] = useState<'simple' | 'array' | 'object'>(
+    value.type === 'simple' ? 'simple' : value.type
+  );
+  const [inputValue, setInputValue] = useState(
+    value.type === 'simple' ? value.value : ''
+  );
+
+  const handleTypeChange = (type: 'simple' | 'array' | 'object') => {
+    setSelectedType(type);
+    if (type === 'simple') {
+      onChange(createSimpleValue(inputValue));
+    } else if (type === 'array') {
+      onChange({ type: 'array', items: [] });
+    } else {
+      onChange({ type: 'object', properties: [] });
+    }
+  };
+
+  const handleValueChange = (newValue: string) => {
+    setInputValue(newValue);
+    if (selectedType === 'simple') {
+      onChange(createSimpleValue(newValue));
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-medium text-gray-700">
+        Value Type
+      </label>
+
+      {/* Type selector buttons */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => handleTypeChange('simple')}
+          className={`flex-1 px-4 py-2 text-sm rounded transition-colors ${
+            selectedType === 'simple'
+              ? 'bg-green-100 text-green-800 border-2 border-green-500'
+              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          Value
+        </button>
+        <button
+          type="button"
+          onClick={() => handleTypeChange('array')}
+          className={`flex-1 px-4 py-2 text-sm rounded transition-colors ${
+            selectedType === 'array'
+              ? 'bg-green-100 text-green-800 border-2 border-green-500'
+              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          Array
+        </button>
+        <button
+          type="button"
+          onClick={() => handleTypeChange('object')}
+          className={`flex-1 px-4 py-2 text-sm rounded transition-colors ${
+            selectedType === 'object'
+              ? 'bg-green-100 text-green-800 border-2 border-green-500'
+              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          Object
+        </button>
+      </div>
+
+      {/* Input for simple value */}
+      {selectedType === 'simple' && (
+        <div>
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => handleValueChange(e.target.value)}
+            placeholder="Enter initial value (optional)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            You can edit this value later on the block
+          </p>
+        </div>
+      )}
+
+      {/* Info for array/object */}
+      {selectedType !== 'simple' && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+          <p className="text-sm text-blue-800">
+            {selectedType === 'array'
+              ? 'An empty array will be created. You can add items by clicking on the value on the block.'
+              : 'An empty object will be created. You can add properties by clicking on the value on the block.'}
+          </p>
+        </div>
+      )}
+    </div>
   );
 };

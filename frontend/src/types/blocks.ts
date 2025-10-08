@@ -1,5 +1,7 @@
 // Core types for Visual IDE
 
+import type { ComplexValue } from './values';
+
 export type BlockType =
   | 'function'
   | 'variable'
@@ -24,7 +26,7 @@ export interface FunctionBlock extends BaseBlock {
 export interface VariableBlock extends BaseBlock {
   type: 'variable';
   name: string;
-  value: string;
+  value: string | ComplexValue;  // Support both old (string) and new (ComplexValue) format
 }
 
 export type ElseType = 'none' | 'elif' | 'else';
