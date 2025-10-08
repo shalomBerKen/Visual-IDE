@@ -156,6 +156,10 @@ src/
 6. ✅ Parameter editing for functions
 7. ✅ Delete blocks functionality
 8. ✅ Nested blocks support
+9. ✅ Modal-based editing system with modern UI
+10. ✅ Scope-aware available variables feature
+11. ✅ Complex value support (arrays & objects with unlimited nesting)
+12. ✅ Cascading panels UI for editing nested structures
 
 **Success Criteria**:
 משתמש יכול להדביק פונקציה פשוטה, לראות אותה ויזואלית, לערוך, ולקבל קוד תקין בחזרה.
@@ -323,5 +327,25 @@ Bubble, Webflow וחברים מעולים, אבל:
 
 ---
 
-*Last Updated: 2025-10-03*
-*Project Status: Phase 1 - MVP Complete + Major Refactoring Done! 🎉*
+## Recent Updates (2025-10-08)
+
+### Complex Value Support with Cascading Panels
+הוספנו תמיכה מלאה בערכים מורכבים (מערכים ואובייקטים) עם ממשק חדשני:
+
+**Features:**
+- **Cascading Panels UI** - ממשק בסגנון VSCode Preferences עם חלונות גולשים
+- **Unlimited Nesting** - תמיכה במבנים מקוננים ללא הגבלה
+- **Direct Block Editing** - עריכה ישירות על הבלוק, ללא צורך במודל גדול
+- **Simple Add Modals** - מודלים פשוטים רק להוספת פריטים ומאפיינים חדשים
+- **Real-time Updates** - עדכונים מיידיים של ערכים מקוננים
+
+**Technical Implementation:**
+- `ComplexValueDisplay` - קומפוננט ראשי עם לוגיקת פאנלים גולשים
+- `AddValueModal` - מודלים פשוטים להוספת ערכים
+- Type-safe עם `ComplexValue` union type
+- Backward compatible עם ערכים קיימים
+
+---
+
+*Last Updated: 2025-10-08*
+*Project Status: Phase 1 - MVP Complete + Complex Values Feature! 🎉*

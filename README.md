@@ -18,7 +18,7 @@
 
 ### 🧱 Visual Blocks
 - **Function Blocks** - Create and edit functions with parameters
-- **Variable Blocks** - Declare and assign variables
+- **Variable Blocks** - Declare and assign variables (including complex arrays and objects!)
 - **Conditional Blocks** - If/Else statements with visual conditions
 - **Loop Blocks** - For loops with iterators
 - **Return Blocks** - Function return values
@@ -30,6 +30,9 @@
 - **Nested Blocks** - Full support for nested code structures
 - **Parameter Editing** - Add/remove function parameters with ease
 - **Block Deletion** - Remove blocks with a single click
+- **Complex Values** - Create and edit arrays and objects with unlimited nesting
+- **Cascading Panels** - VSCode Preferences-style interface for navigating nested structures
+- **Modal-based Editing** - Clean, modern UI for all block properties
 
 ---
 
@@ -130,6 +133,10 @@ Visual-IDE/
 - [x] Parameter editing
 - [x] Delete blocks
 - [x] Variable tracking and highlighting
+- [x] Modal-based editing system
+- [x] Scope-aware available variables
+- [x] Complex values (arrays & objects)
+- [x] Cascading panels UI
 
 ### Phase 2: Language Engine 🔜
 - [ ] Modular language support
