@@ -3,7 +3,7 @@
  * Supports recursive nesting of values
  */
 
-export type ValueType = 'simple' | 'array' | 'object';
+export type ValueType = 'simple' | 'array' | 'object' | 'function-call';
 
 /**
  * Simple value - a string that can be a literal, expression, or variable reference
@@ -41,10 +41,29 @@ export interface ObjectProperty {
 }
 
 /**
- * Complex value - can be simple, array, or object
+ * Function call value - represents a function call with arguments
+ * Example: add(5, 3), get_user("John", age=30)
+ */
+export interface FunctionCallValue {
+  type: 'function-call';
+  functionName: string;
+  arguments: FunctionArgument[];
+}
+
+/**
+ * A single argument in a function call
+ * Can be positional or keyword argument
+ */
+export interface FunctionArgument {
+  name?: string;  // For keyword arguments (e.g., age=30)
+  value: ComplexValue;
+}
+
+/**
+ * Complex value - can be simple, array, object, or function call
  * This is a recursive type that allows unlimited nesting
  */
-export type ComplexValue = SimpleValue | ArrayValue | ObjectValue;
+export type ComplexValue = SimpleValue | ArrayValue | ObjectValue | FunctionCallValue;
 
 /**
  * Type guard to check if a value is a SimpleValue
@@ -65,6 +84,13 @@ export function isArrayValue(value: ComplexValue): value is ArrayValue {
  */
 export function isObjectValue(value: ComplexValue): value is ObjectValue {
   return value.type === 'object';
+}
+
+/**
+ * Type guard to check if a value is a FunctionCallValue
+ */
+export function isFunctionCallValue(value: ComplexValue): value is FunctionCallValue {
+  return value.type === 'function-call';
 }
 
 /**
@@ -94,5 +120,16 @@ export function createObjectValue(properties: ObjectProperty[] = []): ObjectValu
   return {
     type: 'object',
     properties
+  };
+}
+
+/**
+ * Create a default function call value
+ */
+export function createFunctionCallValue(functionName: string = '', args: FunctionArgument[] = []): FunctionCallValue {
+  return {
+    type: 'function-call',
+    functionName,
+    arguments: args
   };
 }

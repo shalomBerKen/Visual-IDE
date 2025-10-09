@@ -4,7 +4,7 @@ import { ModalTextInput } from '../common/ModalTextInput';
 import { ModalActions } from '../common/ModalActions';
 import type { VariableBlock } from '../../types/blocks';
 import type { ComplexValue } from '../../types/values';
-import { ValueTreeEditor } from '../valueBuilder';
+import { ComplexValueDisplay } from '../valueBuilder';
 import { migrateValue } from '../../utils/valueUtils';
 import { createSimpleValue } from '../../types/values';
 
@@ -106,12 +106,12 @@ export const VariableEditModal: React.FC<VariableEditModalProps> = ({
             // Simple type selector for creation
             <SimpleValueTypeSelector value={value} onChange={setValue} />
           ) : (
-            // Full tree editor for editing
+            // Full value display for editing (with cascading panels)
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Value
               </label>
-              <ValueTreeEditor
+              <ComplexValueDisplay
                 value={value}
                 onChange={setValue}
                 availableVariables={availableVariables}
@@ -138,21 +138,26 @@ const SimpleValueTypeSelector: React.FC<{
   value: ComplexValue;
   onChange: (value: ComplexValue) => void;
 }> = ({ value, onChange }) => {
-  const [selectedType, setSelectedType] = useState<'simple' | 'array' | 'object'>(
-    value.type === 'simple' ? 'simple' : value.type
+  const [selectedType, setSelectedType] = useState<'simple' | 'array' | 'object' | 'function-call'>(
+    value.type === 'function-call' ? 'function-call' : value.type === 'simple' ? 'simple' : value.type
   );
   const [inputValue, setInputValue] = useState(
     value.type === 'simple' ? value.value : ''
   );
+  const [functionName, setFunctionName] = useState(
+    value.type === 'function-call' ? value.functionName : ''
+  );
 
-  const handleTypeChange = (type: 'simple' | 'array' | 'object') => {
+  const handleTypeChange = (type: 'simple' | 'array' | 'object' | 'function-call') => {
     setSelectedType(type);
     if (type === 'simple') {
       onChange(createSimpleValue(inputValue));
     } else if (type === 'array') {
       onChange({ type: 'array', items: [] });
-    } else {
+    } else if (type === 'object') {
       onChange({ type: 'object', properties: [] });
+    } else {
+      onChange({ type: 'function-call', functionName, arguments: [] });
     }
   };
 
@@ -163,6 +168,13 @@ const SimpleValueTypeSelector: React.FC<{
     }
   };
 
+  const handleFunctionNameChange = (newName: string) => {
+    setFunctionName(newName);
+    if (selectedType === 'function-call') {
+      onChange({ type: 'function-call', functionName: newName, arguments: [] });
+    }
+  };
+
   return (
     <div className="space-y-3">
       <label className="block text-sm font-medium text-gray-700">
@@ -170,11 +182,11 @@ const SimpleValueTypeSelector: React.FC<{
       </label>
 
       {/* Type selector buttons */}
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={() => handleTypeChange('simple')}
-          className={`flex-1 px-4 py-2 text-sm rounded transition-colors ${
+          className={`px-4 py-2 text-sm rounded transition-colors ${
             selectedType === 'simple'
               ? 'bg-green-100 text-green-800 border-2 border-green-500'
               : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -185,7 +197,7 @@ const SimpleValueTypeSelector: React.FC<{
         <button
           type="button"
           onClick={() => handleTypeChange('array')}
-          className={`flex-1 px-4 py-2 text-sm rounded transition-colors ${
+          className={`px-4 py-2 text-sm rounded transition-colors ${
             selectedType === 'array'
               ? 'bg-green-100 text-green-800 border-2 border-green-500'
               : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -196,13 +208,24 @@ const SimpleValueTypeSelector: React.FC<{
         <button
           type="button"
           onClick={() => handleTypeChange('object')}
-          className={`flex-1 px-4 py-2 text-sm rounded transition-colors ${
+          className={`px-4 py-2 text-sm rounded transition-colors ${
             selectedType === 'object'
               ? 'bg-green-100 text-green-800 border-2 border-green-500'
               : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
           }`}
         >
           Object
+        </button>
+        <button
+          type="button"
+          onClick={() => handleTypeChange('function-call')}
+          className={`px-4 py-2 text-sm rounded transition-colors ${
+            selectedType === 'function-call'
+              ? 'bg-green-100 text-green-800 border-2 border-green-500'
+              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          Function Call
         </button>
       </div>
 
@@ -222,8 +245,24 @@ const SimpleValueTypeSelector: React.FC<{
         </div>
       )}
 
+      {/* Input for function name */}
+      {selectedType === 'function-call' && (
+        <div>
+          <input
+            type="text"
+            value={functionName}
+            onChange={(e) => handleFunctionNameChange(e.target.value)}
+            placeholder="Enter function name"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Arguments can be added by clicking on the value on the block
+          </p>
+        </div>
+      )}
+
       {/* Info for array/object */}
-      {selectedType !== 'simple' && (
+      {(selectedType === 'array' || selectedType === 'object') && (
         <div className="p-3 bg-blue-50 border border-blue-200 rounded">
           <p className="text-sm text-blue-800">
             {selectedType === 'array'

@@ -1,4 +1,4 @@
-import type { ComplexValue, SimpleValue, ArrayValue, ObjectValue } from '../types/values';
+import type { ComplexValue, SimpleValue, ArrayValue, ObjectValue, FunctionCallValue } from '../types/values';
 import { createSimpleValue } from '../types/values';
 
 /**
@@ -26,6 +26,17 @@ export function compileComplexValue(value: ComplexValue): string {
         return `${key}: ${val}`;
       });
       return `{${props.join(', ')}}`;
+
+    case 'function-call':
+      const funcName = value.functionName || 'unnamed';
+      if (value.arguments.length === 0) {
+        return `${funcName}()`;
+      }
+      const args = value.arguments.map(arg => {
+        const argValue = compileComplexValue(arg.value);
+        return arg.name ? `${arg.name}=${argValue}` : argValue;
+      });
+      return `${funcName}(${args.join(', ')})`;
 
     default:
       return '""';
@@ -91,6 +102,9 @@ export function countValueItems(value: ComplexValue): number {
     case 'object':
       return value.properties.reduce((sum, prop) => sum + countValueItems(prop.value), 0);
 
+    case 'function-call':
+      return value.arguments.reduce((sum, arg) => sum + countValueItems(arg.value), 1);
+
     default:
       return 0;
   }
@@ -119,6 +133,16 @@ export function cloneComplexValue(value: ComplexValue): ComplexValue {
         }))
       };
 
+    case 'function-call':
+      return {
+        type: 'function-call',
+        functionName: value.functionName,
+        arguments: value.arguments.map(arg => ({
+          name: arg.name,
+          value: cloneComplexValue(arg.value)
+        }))
+      };
+
     default:
       return createSimpleValue('');
   }
@@ -137,6 +161,9 @@ export function isValueEmpty(value: ComplexValue): boolean {
 
     case 'object':
       return value.properties.length === 0;
+
+    case 'function-call':
+      return !value.functionName || value.functionName.trim() === '';
 
     default:
       return true;
